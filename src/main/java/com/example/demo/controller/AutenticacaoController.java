@@ -67,7 +67,7 @@ public class AutenticacaoController {
     }
     
     // Cadastro temporário
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/cadastrar")
     public String cadastrarUsuario(@RequestBody Usuario novoUsuario) {
         String senhaSegura = encriptador.encode(novoUsuario.getSenha());
