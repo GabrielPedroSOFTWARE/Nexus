@@ -1,4 +1,4 @@
-package service;
+package com.example.demo.service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -11,8 +11,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-
-import model.Usuario;
+import com.example.demo.model.Usuario;
 
 @Service
 public class TokenService {
@@ -34,7 +33,7 @@ public class TokenService {
     }
 
     // Método que verifica se o token é verdadeira e devolve o nome do usuário
-    public String getSubject(String tokenJWT) {
+    public String validarToken(String tokenJWT) {
         try {
             Algorithm algoritmo = Algorithm.HMAC256(senhaSecreta);
             return JWT.require(algoritmo)

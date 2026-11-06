@@ -1,5 +1,8 @@
-package model;
+package com.example.demo.model;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -19,12 +22,16 @@ import lombok.Setter;
 public class Equipamento {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
+	private UUID idUsuario;
 	private String fabricante;
 	private String modelo;
 	private String processador;
 	private int ram;
+	@ElementCollection
+	private List<Pedido> pedidos;
+	private String garantia;
 	@ElementCollection
 	private List<String> placasDeVideo;
 	@ElementCollection
