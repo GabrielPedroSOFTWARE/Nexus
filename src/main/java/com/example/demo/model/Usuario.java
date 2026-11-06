@@ -43,7 +43,7 @@ public class Usuario implements UserDetails {
     
     @Enumerated(EnumType.STRING)
     private PerfilUsuario perfil;
-    private String status = "";
+    private String status = "PENDENTE";
 
  // Define a autoridade do usuário baseado no perfil
     @Override
