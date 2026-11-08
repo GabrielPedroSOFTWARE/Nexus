@@ -64,7 +64,7 @@ public class HardwareController {
     @PostMapping(value = "/criar-pedido", consumes = "multipart/form-data")
     public String criarNovoPedido(
             @ModelAttribute Pedido novoPedido, 
-            @RequestParam(value = "foto", required = false) MultipartFile arquivoFoto
+            @RequestParam(value = "arquivoImagem", required = false) MultipartFile arquivoFoto
             ) {
     	
         try {
@@ -72,7 +72,7 @@ public class HardwareController {
             if (arquivoFoto != null && !arquivoFoto.isEmpty()) {
                 novoPedido.setFoto(arquivoFoto.getBytes());
             }
-
+            
             pedidoRepository.save(novoPedido);
             return "Pedido salvo com sucesso";
             
@@ -83,8 +83,9 @@ public class HardwareController {
     
     // Altera o status do pedido
     @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/alterar-status-pedido/{id}")
-    public String alterarStatusPedido(@PathVariable UUID id, @RequestParam int novoStatusId) {
+    @PatchMapping("/admin/alterar-status-pedido/{id}")
+    public String alterarStatusPedido(@PathVariable("id") UUID id,
+    		@RequestBody int novoStatusId) {
         
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
@@ -95,10 +96,26 @@ public class HardwareController {
         
         return "Status do pedido alterado com sucesso!";
     }
+    
+    // Atribui o técino ao pedido
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/admin/atribuir-tecnico/{id}")
+    public String atribuirTecnico(@PathVariable("id") UUID id,
+    		@RequestBody String tecnico) {
+    	
+    	Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+    	
+    	pedido.setTecnico(tecnico);
+    	pedidoRepository.save(pedido);
+    	
+    	return "Tecnico atribuído ao pedido";
+    }
+    
     // Realiza a verificação das peças do computador
     @GetMapping("/pecas")
-    public Map<String, String> verificarPecas() {
-        return hardwareService.gerarRelatorioCompleto();
+    public Equipamento verificarPecas(@AuthenticationPrincipal Usuario usuarioLogado) {
+        return hardwareService.gerarRelatorioCompleto(usuarioLogado);
     }
     
     // Retorna os equipamentos cadastrados
@@ -116,6 +133,12 @@ public class HardwareController {
     	dados.put("totalUsuarios", usuarioRepository.count());
     	dados.put("totalMaquinas", equipamentoRepository.count());
     	return dados;
+    }
+    
+    // Retorna as O.Ss do equipamento específico
+    @GetMapping("/listar-pedidos-equipamento/{id}")
+    public List<Pedido> listarManutencoesEquipamento(@PathVariable("id") UUID id) {
+    	return pedidoRepository.findByIdPC(id);
     }
     
     // Retorna as O.Ss do usuário

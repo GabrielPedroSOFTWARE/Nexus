@@ -1,11 +1,12 @@
 package com.example.demo.service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
+
+import com.example.demo.model.Equipamento;
+import com.example.demo.model.Usuario;
 
 import oshi.SystemInfo;
 import oshi.hardware.GraphicsCard;
@@ -15,34 +16,28 @@ import oshi.hardware.HardwareAbstractionLayer;
 @Service
 public class HardwareService {
 
-	public Map<String, String> gerarRelatorioCompleto() {
+	public Equipamento gerarRelatorioCompleto(Usuario usuarioLogado) {
         
-	    // Criamos o nosso "dicionário" que vai guardar pares de textos (chave e valor)
-	    Map<String, String> relatorio = new HashMap<>(); 
+	    Equipamento equipamento = new Equipamento();
+	    equipamento.setIdUsuario(usuarioLogado.getId());
 	    
 	    SystemInfo informacoes = new SystemInfo();
 	    HardwareAbstractionLayer hardware = informacoes.getHardware();
 
-	    // Em vez de usar .set(), usamos o .put("Nome da Etiqueta", "Informação")
-	    relatorio.put("Fabricante", hardware.getComputerSystem().getManufacturer());
-	    relatorio.put("Modelo", hardware.getComputerSystem().getModel());
-	    relatorio.put("Processador", hardware.getProcessor().getProcessorIdentifier().getName()); 
+	    equipamento.setFabricante(hardware.getComputerSystem().getManufacturer());
+	    equipamento.setModelo(hardware.getComputerSystem().getModel());
+	    equipamento.setProcessador(hardware.getProcessor().getProcessorIdentifier().getName());
 
-	    // Calcula a RAM
 	    long memoriaEmBytes = hardware.getMemory().getTotal();
 	    int ramEmGb = (int) (memoriaEmBytes / (1024 * 1024 * 1024));
-	    // Transformamos o número inteiro da RAM em texto (String) para caber no Map
-	    relatorio.put("RAM", String.valueOf(ramEmGb)); 
+	    equipamento.setRam(ramEmGb);
 	    
-	    // Pegamos as listas
 	    List<String> listaDePlacas = lerPlacasDeVideo(hardware.getGraphicsCards());
 	    List<String> listaDeDiscos = lerDiscos(hardware.getDiskStores());
 
-	    // Juntamos os itens das listas em um único texto, separados por vírgula e espaço
-	    relatorio.put("PlacasDeVideo", String.join(", ", listaDePlacas));
-	    relatorio.put("Discos", String.join(", ", listaDeDiscos));
-
-	    return relatorio;
+	    equipamento.setPlacasDeVideo(listaDePlacas);
+	    equipamento.setDiscos(listaDeDiscos);
+	    return equipamento;
 	}
 
 	// Os métodos de baixo continuam iguais, apenas servem de apoio para o método principal

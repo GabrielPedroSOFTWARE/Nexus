@@ -25,6 +25,7 @@ public class Pedido {
 	private UUID idPC;
 	private UUID idUsuario;
 	private String apelido;
+	private int prioridade;
 	private int status;
 	private String problema;
 	private LocalDate dataManutencao;
@@ -32,4 +33,6 @@ public class Pedido {
 	private String tecnico;
 	@Lob
     private byte[] foto;
+	private String descricao;
+	private String observacoesTecnico;
 }
