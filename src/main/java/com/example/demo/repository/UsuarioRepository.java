@@ -12,4 +12,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 	List<Usuario> findByStatus(String status);
 	// Procura o usuário na base de dados pelo login
     UserDetails findByLogin(String login); 
+    List<Usuario> findByIdNot(UUID id);
 }

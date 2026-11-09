@@ -14,7 +14,7 @@ import oshi.hardware.HWDiskStore;
 import oshi.hardware.HardwareAbstractionLayer;
 
 @Service
-public class HardwareService {
+public class EquipamentoService {
 
 	public Equipamento gerarRelatorioCompleto(Usuario usuarioLogado) {
         

@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -159,6 +160,13 @@ public class AutenticacaoController {
         usuarioRepository.save(usuario);
         
         return ResponseEntity.ok("Perfil da conta alterado para " + perfil.toString());
+    }
+    
+    // Retorna todos os usuários cadastrados, com excessão do admin atual
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/retornar-todos-menos-atual")
+    public List<Usuario> retornarUsuarios(@AuthenticationPrincipal Usuario usuarioLogado) {
+    	return usuarioRepository.findByIdNot(usuarioLogado.getId());
     }
 }
 
