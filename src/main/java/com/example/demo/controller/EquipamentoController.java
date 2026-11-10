@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,7 +46,7 @@ public class EquipamentoController {
     
     // Remove o equipamento pela id
     @DeleteMapping("/remover-equipamento/{id}")
-    public String removerEquipamento(@PathVariable("id") UUID id) {
+    public String removerEquipamento(@PathVariable("id") Long id) {
     	equipamentoRepository.deleteById(id);
     	return "Peça deletada";
     }
@@ -62,7 +61,7 @@ public class EquipamentoController {
     // Retorna os equipamentos cadastrados
 	@GetMapping("/listar-equipamentos-usuario")
 	public List<Equipamento> listarEquipamentosUsuario(@AuthenticationPrincipal Usuario usuarioLogado) {
-		UUID idUsuario = usuarioLogado.getId();
+		String idUsuario = usuarioLogado.getId();
 	    return equipamentoRepository.findByIdUsuario(idUsuario);
 	}
 	

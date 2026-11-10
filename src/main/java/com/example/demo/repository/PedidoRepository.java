@@ -8,6 +8,6 @@ import com.example.demo.model.Pedido;
 
 
 public interface PedidoRepository extends JpaRepository<Pedido, UUID>{
-	List<Pedido> findByIdUsuario(UUID id);
+	List<Pedido> findByIdUsuario(String id);
 	List<Pedido> findByIdPC(UUID idPC);
 }

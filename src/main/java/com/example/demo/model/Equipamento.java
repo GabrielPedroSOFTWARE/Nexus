@@ -1,13 +1,12 @@
 package com.example.demo.model;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,9 +21,15 @@ import lombok.Setter;
 public class Equipamento {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.UUID)
-	private UUID id;
-	private UUID idUsuario;
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "pedido_seq")
+	@SequenceGenerator(
+	    name = "pedido_seq",
+	    sequenceName = "pedido_sequence",
+	    initialValue = 100000,
+	    allocationSize = 1
+	)
+	private Long id;
+	private String idUsuario;
 	private String fabricante;
 	private String modelo;
 	private String processador;

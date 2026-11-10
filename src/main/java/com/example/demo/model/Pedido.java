@@ -1,6 +1,5 @@
 package com.example.demo.model;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.UUID;
 
 import jakarta.persistence.Entity;
@@ -25,11 +24,10 @@ public class Pedido {
 	private UUID idPC;
 	private UUID idUsuario;
 	private String apelido;
-	private int prioridade;
 	private int status;
 	private String problema;
-	private LocalDate dataManutencao;
-	private LocalTime mttr;
+	private LocalDate dataInicioManutencao;
+	private LocalDate dataFinalManutencao;
 	private String tecnico;
 	@Lob
     private byte[] foto;

@@ -88,7 +88,7 @@ public class PedidoController {
     // Retorna as O.Ss do usuário
     @GetMapping("/listar-pedidos-usuario")
 	public List<Pedido> listarManutencoesUsuario (@AuthenticationPrincipal Usuario usuarioLogado) {
-		UUID idUsuario = usuarioLogado.getId();
+		String idUsuario = usuarioLogado.getId();
 		return pedidoRepository.findByIdUsuario(idUsuario);
 	}
     
