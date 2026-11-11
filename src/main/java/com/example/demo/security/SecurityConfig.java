@@ -1,5 +1,6 @@
 package com.example.demo.security;
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -54,7 +55,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Libera o endereço exato do seu Front-end no VS Code
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); 
+        configuration.setAllowedOrigins(List.of(
+        	    "http://localhost:5173", 
+        	    "https://gabrielpedrosoftware.github.io"
+        	)); 
         
         // Libera as ações que o Front-end pode fazer (Ler, Enviar, Atualizar, Deletar)
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); 

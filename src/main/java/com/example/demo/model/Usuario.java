@@ -41,6 +41,7 @@ public class Usuario implements UserDetails {
     @Column(unique = true)
     private String login;
     private String senha;
+    private String justificativa;
     
     @Enumerated(EnumType.STRING)
     private PerfilUsuario perfil = PerfilUsuario.PENDENT;
