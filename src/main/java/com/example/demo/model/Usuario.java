@@ -46,6 +46,7 @@ public class Usuario implements UserDetails {
     private PerfilUsuario perfil = PerfilUsuario.PENDENT;
     private String status = "Aguardando análise";
     private boolean ehAdmin = false;
+    private Integer versaoToken = 1;
 
  // Define a autoridade do usuário baseado no perfil
     @Override

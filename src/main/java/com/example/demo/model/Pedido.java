@@ -21,14 +21,15 @@ public class Pedido {
 	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-	private UUID idPC;
-	private UUID idUsuario;
+	private Long idPC;
+	private String idUsuario;
 	private String apelido;
-	private int status;
+	private Integer status;
+	private Integer prioridade;
 	private String problema;
 	private LocalDate dataInicioManutencao;
 	private LocalDate dataFinalManutencao;
-	private String tecnico;
+	private String idTecnico;
 	@Lob
     private byte[] foto;
 	private String descricao;

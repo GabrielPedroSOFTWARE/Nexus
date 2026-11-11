@@ -25,10 +25,25 @@ public class TokenService {
             return JWT.create()
                     .withIssuer("API Nexus") // O nome de quem emitiu o token
                     .withSubject(usuario.getLogin()) // Quem é o dono do token
+                    .withClaim("versaoToken", usuario.getVersaoToken())
                     .withExpiresAt(dataExpiracao()) // Quando o token perde a validade
                     .sign(algoritmo);
         } catch (JWTCreationException exception){
             throw new RuntimeException("Erro ao gerar token JWT", exception);
+        }
+    }
+    
+    // Extrai a versão do token
+    public Integer extrairVersaoToken(String tokenJWT) {
+        try {
+            Algorithm algoritmo = Algorithm.HMAC256(senhaSecreta);
+            return JWT.require(algoritmo)
+                    .withIssuer("API Nexus")
+                    .build()
+                    .verify(tokenJWT)
+                    .getClaim("versaoToken").asInt();
+        } catch (JWTVerificationException exception) {
+            throw new RuntimeException("Token JWT inválido ou expirado!");
         }
     }
 

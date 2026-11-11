@@ -48,8 +48,8 @@ public class AutenticacaoController {
     @PostMapping("/login")
     public ResponseEntity<?> efetuarLogin(@RequestBody DadosLogin dados) { 
         
-        ResponseEntity<?> erroDeStatus = autenticacaoService
-        		.verificarStatusUsuario(dados.login());
+        ResponseEntity<?> erroDeStatus = 
+        		autenticacaoService.verificarStatusUsuario(dados.login());
         
         if (erroDeStatus != null) return erroDeStatus;
         
@@ -57,7 +57,6 @@ public class AutenticacaoController {
             Usuario logado = (Usuario) manager.authenticate(
                 new UsernamePasswordAuthenticationToken(dados.login(), dados.senha())
             ).getPrincipal();
-             
             return ResponseEntity.ok(Map.of(
                 "token", tokenService.gerarToken(logado),
                 "perfil", logado.getPerfil().name(),
@@ -97,8 +96,8 @@ public class AutenticacaoController {
         Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
         
         Usuario usuario = usuarioOptional.get();
-        usuario.setStatus("Ativo");
         
+        usuario.setStatus("Ativo");
         usuario.setPerfil(perfilDefinido);
         
         usuarioRepository.save(usuario);
@@ -149,6 +148,7 @@ public class AutenticacaoController {
         Usuario usuario = usuarioOptional.get();
         
         usuario.setPerfil(perfil);
+        usuario.setVersaoToken(usuario.getVersaoToken() + 1);
         
         usuarioRepository.save(usuario);
         

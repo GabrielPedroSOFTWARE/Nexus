@@ -33,9 +33,7 @@ public class Equipamento {
 	private String fabricante;
 	private String modelo;
 	private String processador;
-	private int ram;
-	@ElementCollection
-	private List<Pedido> pedidos;
+	private Integer ram;
 	private String garantia;
 	@ElementCollection
 	private List<String> placasDeVideo;

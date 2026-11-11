@@ -1,5 +1,4 @@
 package com.example.demo.controller;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.Equipamento;
-import com.example.demo.model.Pedido;
 import com.example.demo.model.Usuario;
 import com.example.demo.repository.EquipamentoRepository;
 import com.example.demo.repository.UsuarioRepository;
@@ -38,7 +36,7 @@ public class EquipamentoController {
     		@AuthenticationPrincipal Usuario usuarioLogado) {
         
         equipamento.setIdUsuario(usuarioLogado.getId());
-        equipamento.setPedidos(new ArrayList<Pedido>());
+
         
     	equipamentoRepository.save(equipamento);
         return "Peça salva com sucesso no banco de dados!";
@@ -46,11 +44,21 @@ public class EquipamentoController {
     
     // Remove o equipamento pela id
     @DeleteMapping("/remover-equipamento/{id}")
-    public String removerEquipamento(@PathVariable("id") Long id) {
-    	equipamentoRepository.deleteById(id);
+    public String removerEquipamento(@PathVariable("id") Long idEquipamento,
+    		@AuthenticationPrincipal Usuario usuarioLogado) {
+    	String idUsuario = usuarioLogado.getId();
+    	boolean fazParte = equipamentoRepository
+    			.verificarPossivelExclusaoEquipamento(idEquipamento, idUsuario);
+    	if(!fazParte) return "Há uma O.S em aberto para esse equipamento";
+    	equipamentoRepository.deleteById(idEquipamento);
     	return "Peça deletada";
     }
     
+    @GetMapping("/equipamentos-para-pedidos")
+    public List<Equipamento> retornarEquipamentosParaPedidos(
+    		@PathVariable("idUsuario") String idUsuario) {
+        return equipamentoRepository.buscarEquipamentosComStatusFinalizadoPorUsuario(idUsuario);
+    }
     
     // Realiza a verificação das peças do computador
     @GetMapping("/pecas")
