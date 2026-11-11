@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,7 +41,8 @@ public class PedidoController {
     @PostMapping(value = "/criar-pedido", consumes = "multipart/form-data")
     public String criarNovoPedido(
             @ModelAttribute Pedido novoPedido, 
-            @RequestParam(value = "arquivoImagem", required = false) MultipartFile arquivoFoto
+            @RequestParam(value = "arquivoImagem", required = false) MultipartFile arquivoFoto,
+            @AuthenticationPrincipal Usuario usuario
             ) {
     	
         try {
@@ -48,6 +50,9 @@ public class PedidoController {
             if (arquivoFoto != null && !arquivoFoto.isEmpty()) {
                 novoPedido.setFoto(arquivoFoto.getBytes());
             }
+            novoPedido.setDataInicioManutencao(LocalDate.now());
+            novoPedido.setStatus(0);
+            novoPedido.setIdUsuario(usuario.getId());
             novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
             pedidoRepository.save(novoPedido);
             return "Pedido salvo com sucesso";

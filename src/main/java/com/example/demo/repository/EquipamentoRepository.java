@@ -14,7 +14,14 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Long> 
 	         + "(SELECT p.idPC FROM Pedido p WHERE p.status NOT IN (5, 6))")
     List<Equipamento> buscarEquipamentosComStatusFinalizadoPorUsuario(@Param("idUsuario") String idUsuario);
 	
-	@Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM Equipamento e WHERE e.id = :idEquipamento AND e.idUsuario = :idUsuario AND e.id IN (SELECT p.idPC FROM Pedido p WHERE p.status NOT IN (5, 6))")
+	@Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END " +
+		       "FROM Equipamento e " +
+		       "WHERE e.id = :idEquipamento " +
+		       "AND e.idUsuario = :idUsuario " +
+		       "AND NOT EXISTS (" +
+		       "    SELECT 1 FROM Pedido p " +
+		       "    WHERE p.idPC = e.id AND p.status NOT IN (5, 6)" +
+		       ")")
 	    boolean verificarPossivelExclusaoEquipamento(
 	            @Param("idEquipamento") Long idEquipamento, 
 	            @Param("idUsuario") String idUsuario);
