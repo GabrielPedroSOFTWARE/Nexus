@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,17 +33,35 @@ public class PedidoController {
 	
 	// Salva a solicitação no banco de dados
     @PostMapping(value = "/criar-pedido", consumes = "multipart/form-data")
-    public String criarNovoPedido(
+    public ResponseEntity<String> criarNovoPedido(
             @ModelAttribute Pedido novoPedido, 
             @RequestParam(value = "arquivoImagem", required = false) MultipartFile arquivoFoto,
             @AuthenticationPrincipal Usuario usuario
             ) {
         try {
             pedidoService.criarNovoPedido(novoPedido, arquivoFoto, usuario);
-            return "Pedido salvo com sucesso";
+            return ResponseEntity.ok("Pedido salvo com sucesso");
         } catch (IOException e) {
-            return "Ocorreu um erro ao processar a imagem.";
+            return ResponseEntity.badRequest().body("Ocorreu um erro ao processar a imagem");
         }
+    }
+    
+    
+    // Altera uma O.S
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PutMapping("/admin/alterar-pedido/{id}")
+    public ResponseEntity<String> alterarPedido(
+    		@ModelAttribute Pedido novoPedido, 
+            @RequestParam(value = "arquivoImagem", required = false) MultipartFile arquivoFoto,
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable("id") UUID id
+            ) {
+    	try {
+    		pedidoService.alterarPedido(novoPedido, arquivoFoto, id, usuario);
+    		return ResponseEntity.ok("Pedido alterado com sucesso");
+    	} catch (IOException e) {
+    		return ResponseEntity.badRequest().body("Ocorreu um erro ao processar a imagem");
+    	}
     }
     
     
@@ -80,9 +99,9 @@ public class PedidoController {
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/admin/atribuir-tecnico/{id}")
     public ResponseEntity<String> atribuirTecnico(@PathVariable("id") UUID id,
-    		@RequestBody String idTecnico) {
+    		@RequestBody String idTecnico, @AuthenticationPrincipal Usuario usuario) {
     	try {
-    		pedidoService.atribuirTecnico(id, idTecnico);
+    		pedidoService.atribuirTecnico(id, idTecnico, usuario);
     		return ResponseEntity.ok("Tecnico atribuído ao pedido");
     	} catch (RuntimeException e) {
     		return ResponseEntity.badRequest().body(e.getMessage());

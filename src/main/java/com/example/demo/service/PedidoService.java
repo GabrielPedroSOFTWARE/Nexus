@@ -23,6 +23,8 @@ public class PedidoService {
 	private NotificacaoService notificacaoService;
 	@Autowired
 	private PrioridadeService prioridadeService;
+	@Autowired
+	private HistoricoPedidoService historicoPedidoService;
 	
 	
 	// Cria uma nova O.S
@@ -45,6 +47,26 @@ public class PedidoService {
 	}
 
 	
+	// Altera uma O.S
+	public void alterarPedido(Pedido novoPedido, MultipartFile arquivoFoto, UUID id, Usuario usuario)
+	throws IOException {
+		Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+		
+		if (arquivoFoto != null && !arquivoFoto.isEmpty()) {
+			
+            novoPedido.setFoto(arquivoFoto.getBytes());
+            novoPedido.setNomeArquivoFoto(arquivoFoto.getOriginalFilename());
+            novoPedido.setTipoArquivoFoto(arquivoFoto.getContentType());
+        }
+		novoPedido.setId(id);
+		novoPedido.setIdUsuario(pedido.getIdUsuario());
+		novoPedido.setDataInicioManutencao(pedido.getDataInicioManutencao());
+		novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
+		pedidoRepository.save(novoPedido);
+        historicoPedidoService.registrarAcao(pedido, usuario.getId());
+	}
+	
 	// Cancela a O.S
     public void cancelarPedido(UUID id, Usuario usuario, String justificativa) {
         Pedido pedido = pedidoRepository.findById(id)
@@ -57,6 +79,7 @@ public class PedidoService {
         pedido.setJustificativaCancelamento(justificativa);
         
         pedidoRepository.save(pedido);
+        historicoPedidoService.registrarAcao(pedido, usuario.getId());
     }
     
     
@@ -74,18 +97,22 @@ public class PedidoService {
         if (status == 1) pedido.setObservacoesTecnico(dados.get("observacao"));
         if (status == 5) pedido.setDescricao(dados.get("descricao"));
         
-        notificacaoService.enviarNotificacao(pedido.getIdUsuario(), status); 
+        notificacaoService.enviarNotificacao(pedido.getIdUsuario(), status);
+        historicoPedidoService.registrarAcao(pedido, usuario.getId());
         
         pedidoRepository.save(pedido);
     }
     
     
     // Atribui um técnico a uma O.S
-    public void atribuirTecnico(UUID id, String idTecnico) {
+    public void atribuirTecnico(UUID id, String idTecnico, Usuario usuario) {
     	Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
     	
     	pedido.setIdTecnico(idTecnico);
+    	
+    	historicoPedidoService.registrarAcao(pedido, usuario.getId());
+    	
     	pedidoRepository.save(pedido);
     }
 
