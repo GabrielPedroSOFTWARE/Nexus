@@ -26,6 +26,8 @@ public class EquipamentoService {
 	@Autowired
 	private EquipamentoRepository equipamentoRepository;
 
+	
+	// Gera o relatório do pc escaneado
 	public Equipamento gerarRelatorioCompleto(Usuario usuarioLogado) {
         
 	    Equipamento equipamento = new Equipamento();
@@ -50,7 +52,8 @@ public class EquipamentoService {
 	    return equipamento;
 	}
 
-	// Os métodos de baixo continuam iguais, apenas servem de apoio para o método principal
+	
+	// Retorna uma lista com as placas de vídeo lidas
 	private List<String> lerPlacasDeVideo(List<GraphicsCard> gpus) {
 	    List<String> placas = new ArrayList<>();
 	    for (GraphicsCard gpu : gpus) {
@@ -59,6 +62,8 @@ public class EquipamentoService {
 	    return placas; 
 	}
 
+	
+	// Retorna uma lista com os discos lidos
 	private List<String> lerDiscos(List<HWDiskStore> discos) {
 	    List<String> lista = new ArrayList<>();
 	    for (HWDiskStore disco : discos) {
@@ -70,16 +75,22 @@ public class EquipamentoService {
 	    return lista;
 	}
 	
+	
+	// Adiciona um novo equipamento ao banco de dados
 	public void adicionarNovoEquipamento(Equipamento equipamento, Usuario usuarioLogado) {
 		equipamento.setIdUsuario(usuarioLogado.getId());
     	equipamentoRepository.save(equipamento);
 	}
 	
+	
+	// Altera um equipamento do banco de dados
 	public void alterarEquipamento(Long id, Equipamento novoEquipamento) {
     	novoEquipamento.setId(id);
     	equipamentoRepository.save(novoEquipamento);
     }
 	
+	
+	// Remove um equipamento do banco de dados
 	public void removerEquipamento(Long idEquipamento, Usuario usuarioLogado) {
 		
     	String idUsuario = usuarioLogado.getId();
@@ -93,15 +104,21 @@ public class EquipamentoService {
     	equipamentoRepository.deleteById(idEquipamento);
     }
 	
+	
+	// Retorna os equipamentos que podem receber uma O.S
 	public List<Equipamento> retornarEquipamentosParaPedidos(String idUsuario) {
         return equipamentoRepository.buscarEquipamentosComStatusFinalizadoPorUsuario(idUsuario);
     }
 	
+	
+	// Retorna os equipamentos por usuário
 	public List<Equipamento> listarEquipamentosUsuario(Usuario usuarioLogado) {
 	    return equipamentoRepository.findByIdUsuario(usuarioLogado.getId());
 	}
 	
-	public Map<String, Long> retornarDadosEstatisticas(Usuario usuarioLogado) {
+	
+	// Retorna os dados das estatísticas
+	public Map<String, Long> retornarDadosEstatisticas() {
     	Map<String, Long> dados = new HashMap<String, Long>();
     	dados.put("totalUsuarios", usuarioRepository.count());
     	dados.put("totalMaquinas", equipamentoRepository.count());

@@ -29,6 +29,7 @@ public class PedidoController {
 	@Autowired
 	private PedidoService pedidoService;
 
+	
 	// Salva a solicitação no banco de dados
     @PostMapping(value = "/criar-pedido", consumes = "multipart/form-data")
     public String criarNovoPedido(
@@ -44,6 +45,7 @@ public class PedidoController {
         }
     }
     
+    
     // Cancela a O.S
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @PatchMapping("/admin/cancelar-pedido/{id}")
@@ -57,6 +59,7 @@ public class PedidoController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    
     
     // Altera o status do pedido
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
@@ -72,6 +75,7 @@ public class PedidoController {
         } 
     }
     
+    
     // Atribui o técino ao pedido
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/admin/atribuir-tecnico/{id}")
@@ -85,11 +89,13 @@ public class PedidoController {
     	}
     }
     
+    
     // Retorna as O.Ss do equipamento específico
     @GetMapping("/listar-pedidos-equipamento/{id}")
     public List<Pedido> listarManutencoesEquipamento(@PathVariable("id") Long id) {
     	return pedidoService.listarManutencoesEquipamento(id);
     }
+    
     
     // Retorna as O.Ss do usuário
     @GetMapping("/listar-pedidos-usuario")
@@ -97,11 +103,21 @@ public class PedidoController {
 		return pedidoService.listarManutencoesUsuario(usuarioLogado);
 	}
     
+    
     // Retorna as O.Ss atribuídas ao técnico
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping("/listar-pedidos-atribuidos")
-    public List<Pedido> listarManutencoesAtribuidas(@AuthenticationPrincipal Usuario usuarioLogado) {
+    public List<Pedido> listarManutencoesAtribuidasTecnico(
+    		@AuthenticationPrincipal Usuario usuarioLogado) {
     	return pedidoService.listarManutencoesAtribuidas(usuarioLogado);
+    }
+    
+    
+    // Retorna as O.Ss por frequência
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @GetMapping("/listar-pedidos-frequencia")
+    public List<Pedido> listarManutencoesPorSequencia(@RequestBody int frequencia) {
+    	return pedidoService.listarManutencoesPorFrequencia(frequencia);
     }
     
     // Retorna as O.Ss do admin

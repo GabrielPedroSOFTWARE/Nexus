@@ -108,6 +108,11 @@ public class PedidoService {
     }
     
     
+    // Lista as O.Ss por frequência
+    public List<Pedido> listarManutencoesPorFrequencia(int frequencia) {
+    	return pedidoRepository.findByFrequencia(frequencia);
+    }
+    
     // Lista todas as O.Ss 
     public List<Pedido> listarManutencoesAdmin () {
     	return pedidoRepository.findAll();

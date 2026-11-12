@@ -84,8 +84,8 @@ public class EquipamentoController {
 	// Retorna os dados brutos para as estatísticas
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping("/totalUsuarios")
-    public Map<String, Long> retornarDadosEstatisticas(@AuthenticationPrincipal Usuario usuarioLogado) {
-    	return equipamentoService.retornarDadosEstatisticas(usuarioLogado);
+    public Map<String, Long> retornarDadosEstatisticas() {
+    	return equipamentoService.retornarDadosEstatisticas();
     }
     
 }

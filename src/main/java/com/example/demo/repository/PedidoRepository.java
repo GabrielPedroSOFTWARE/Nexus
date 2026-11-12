@@ -12,5 +12,6 @@ public interface PedidoRepository extends JpaRepository<Pedido, UUID>{
 	List<Pedido> findByIdUsuario(String id);
 	List<Pedido> findByIdTecnico(String id);
 	List<Pedido> findByIdPC(Long idPC);
+	List<Pedido> findByFrequencia(Integer frequencia);
 	long countByIdPCAndDataInicioManutencaoAfter(Long idPC, LocalDate data);
 }
