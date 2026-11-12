@@ -37,4 +37,5 @@ public class Pedido {
 	private String tipoArquivoFoto;
 	private String descricao;
 	private String observacoesTecnico;
+	private String justificativaCancelamento;
 }

@@ -64,6 +64,24 @@ public class PedidoController {
         }
     }
     
+    // Cancela a O.S
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PatchMapping("/admin/cancelar-pedido/{id}")
+    public String cancelarPedido(@PathVariable("id") UUID id,
+    		@AuthenticationPrincipal Usuario usuario,
+    		@RequestBody String justificativa) {
+    	Pedido pedido = pedidoRepository.findById(id)
+    			.orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+        
+    	if(!usuario.isEhAdmin() && !usuario.getId().equals(pedido.getIdTecnico())) 
+            return "Sem autorização para alterar o status";
+    	
+    	pedido.setStatus(6);
+    	pedido.setJustificativaCancelamento(justificativa);
+    	
+    	pedidoRepository.save(pedido);
+    	return "Pedido salvo";
+    }
     // Altera o status do pedido
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @PatchMapping("/admin/alterar-status-pedido/{id}")
@@ -75,7 +93,7 @@ public class PedidoController {
     			.orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
         
         if(!usuario.isEhAdmin() && !usuario.getId().equals(pedido.getIdTecnico())) 
-            return "Sem autorização";
+            return "Sem autorização para alterar o status";
         
         int status = Integer.parseInt(dados.get("novoStatusId"));
         pedido.setStatus(status);
@@ -113,14 +131,14 @@ public class PedidoController {
     // Retorna as O.Ss do usuário
     @GetMapping("/listar-pedidos-usuario")
 	public List<Pedido> listarManutencoesUsuario (@AuthenticationPrincipal Usuario usuarioLogado) {
-		String idUsuario = usuarioLogado.getId();
-		return pedidoRepository.findByIdUsuario(idUsuario);
+		return pedidoRepository.findByIdUsuario(usuarioLogado.getId());
 	}
     
     // Retorna as O.Ss atribuídas ao técnico
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping("/listar-pedidos-atribuidos")
     public List<Pedido> listarManutencoesAtribuidas(@AuthenticationPrincipal Usuario usuarioLogado) {
-    	return pedidoRepository.findByIdUsuario(usuarioLogado.getId());
+    	return pedidoRepository.findByIdTecnico(usuarioLogado.getId());
     }
     
     // Retorna as O.Ss do admin

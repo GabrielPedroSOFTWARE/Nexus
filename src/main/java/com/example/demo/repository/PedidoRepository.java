@@ -10,6 +10,7 @@ import com.example.demo.model.Pedido;
 
 public interface PedidoRepository extends JpaRepository<Pedido, UUID>{
 	List<Pedido> findByIdUsuario(String id);
+	List<Pedido> findByIdTecnico(String id);
 	List<Pedido> findByIdPC(Long idPC);
 	long countByIdPCAndDataInicioManutencaoAfter(Long idPC, LocalDate data);
 }
