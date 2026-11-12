@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -12,33 +13,28 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.Notificacao;
 import com.example.demo.model.Usuario;
-import com.example.demo.repository.NotificacaoRepository;
+import com.example.demo.service.NotificacaoService;
 
 @RestController
 public class NotificacaoController {
 	
 	@Autowired
-	private NotificacaoRepository notificacaoRepository;
+	private NotificacaoService notificacaoService;
 
 	// Retorna as notificações
     @GetMapping("/retornar-notificacoes-usuario")
     public List<Notificacao> retornarNotificacoesUsuario(@AuthenticationPrincipal Usuario usuario) {
-    	String idUsuario = usuario.getId();
-    	return notificacaoRepository.findByIdUsuario(idUsuario);
+    	return notificacaoService.retornarNotificacoesUsuario(usuario);
     }
     
     // Marca a notificação como lida
     @PatchMapping("/marcar-notificacao/{id}")
-    public String marcarNotificacaoComoLida(@PathVariable("id") UUID id) {
-    	
-    	Notificacao notificacao = notificacaoRepository.findById(id)
-    			.orElseThrow(() -> new RuntimeException("Notificação não encontrada"));
-    	
-    	notificacao.setLida(true);
-    	
-    	notificacaoRepository.save(notificacao);
-    	
-    	return "Notificação marcada como lida";
-         
+    public ResponseEntity<String> marcarNotificacaoComoLida(@PathVariable("id") UUID id) {
+    	try {
+    		notificacaoService.marcarNotificacaoComoLida(id);
+    		return ResponseEntity.ok("Notificação marcada como lida");
+    	} catch(RuntimeException e) {
+    		return ResponseEntity.badRequest().body(e.getMessage());
+    	}
     }
 }

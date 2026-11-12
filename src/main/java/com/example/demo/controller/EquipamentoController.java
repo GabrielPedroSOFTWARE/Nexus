@@ -1,9 +1,9 @@
 package com.example.demo.controller;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,61 +16,56 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.Equipamento;
 import com.example.demo.model.Usuario;
-import com.example.demo.repository.EquipamentoRepository;
-import com.example.demo.repository.UsuarioRepository;
 import com.example.demo.service.EquipamentoService;
 
 @RestController
 public class EquipamentoController {
 	
 	@Autowired
-	private UsuarioRepository usuarioRepository;
-	@Autowired
     private EquipamentoService equipamentoService;
-	@Autowired
-    private EquipamentoRepository equipamentoRepository;
 
+	
 	// Salva o equipamento no banco de dados
     @PostMapping("/adicionar-equipamento")
-    public String adicionarNovoEquipamento(
+    public ResponseEntity<String> adicionarNovoEquipamento(
     		@RequestBody Equipamento equipamento,
     		@AuthenticationPrincipal Usuario usuarioLogado) {
-        
-        equipamento.setIdUsuario(usuarioLogado.getId());
-
-        
-    	equipamentoRepository.save(equipamento);
-        return "Peça salva com sucesso no banco de dados!";
+        equipamentoService.adicionarNovoEquipamento(equipamento, usuarioLogado);
+        return ResponseEntity.ok("Peça salva com sucesso no banco de dados!");
     }
+    
     
     // Atualiza o equipamento no banco de dados
     @PutMapping("/alterar-equipamento/{id}")
-    public String alterarEquipamento(@PathVariable("id") Long id,
+    public ResponseEntity<String> alterarEquipamento(@PathVariable("id") Long id,
     		@RequestBody Equipamento novoEquipamento) {
     	
-    	novoEquipamento.setId(id);
-    	equipamentoRepository.save(novoEquipamento);
-    	
-    	return "Equipamento alterado";
+    	equipamentoService.alterarEquipamento(id, novoEquipamento);
+    	return ResponseEntity.ok("Equipamento alterado");
     }
+    
     
     // Remove o equipamento pela id
     @DeleteMapping("/remover-equipamento/{id}")
-    public String removerEquipamento(@PathVariable("id") Long idEquipamento,
+    public ResponseEntity<String> removerEquipamento(@PathVariable("id") Long idEquipamento,
     		@AuthenticationPrincipal Usuario usuarioLogado) {
-    	String idUsuario = usuarioLogado.getId();
-    	boolean fazParte = equipamentoRepository
-    			.verificarPossivelExclusaoEquipamento(idEquipamento, idUsuario);
-    	if(!fazParte) return "Há uma O.S em aberto para esse equipamento";
-    	equipamentoRepository.deleteById(idEquipamento);
-    	return "Peça deletada";
+    	try {
+    		
+    		equipamentoService.removerEquipamento(idEquipamento, usuarioLogado);
+    		return ResponseEntity.ok("Peça deletada");
+    		
+    	} catch (RuntimeException e) {
+    		return ResponseEntity.badRequest().body(e.getMessage());
+    	}
     }
+    
     
     @GetMapping("/equipamentos-para-pedidos")
     public List<Equipamento> retornarEquipamentosParaPedidos(
-    		@PathVariable("idUsuario") String idUsuario) {
-        return equipamentoRepository.buscarEquipamentosComStatusFinalizadoPorUsuario(idUsuario);
+    	@PathVariable("idUsuario") String idUsuario) {
+        return equipamentoService.retornarEquipamentosParaPedidos(idUsuario);
     }
+    
     
     // Realiza a verificação das peças do computador
     @GetMapping("/pecas")
@@ -78,21 +73,19 @@ public class EquipamentoController {
         return equipamentoService.gerarRelatorioCompleto(usuarioLogado);
     }
     
+    
     // Retorna os equipamentos cadastrados
 	@GetMapping("/listar-equipamentos-usuario")
 	public List<Equipamento> listarEquipamentosUsuario(@AuthenticationPrincipal Usuario usuarioLogado) {
-		String idUsuario = usuarioLogado.getId();
-	    return equipamentoRepository.findByIdUsuario(idUsuario);
+	    return equipamentoService.listarEquipamentosUsuario(usuarioLogado);
 	}
+	
 	
 	// Retorna os dados brutos para as estatísticas
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping("/totalUsuarios")
     public Map<String, Long> retornarDadosEstatisticas(@AuthenticationPrincipal Usuario usuarioLogado) {
-    	Map<String, Long> dados = new HashMap<String, Long>();
-    	dados.put("totalUsuarios", usuarioRepository.count());
-    	dados.put("totalMaquinas", equipamentoRepository.count());
-    	return dados;
+    	return equipamentoService.retornarDadosEstatisticas(usuarioLogado);
     }
     
 }

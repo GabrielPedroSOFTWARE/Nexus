@@ -14,6 +14,8 @@ public class PrioridadeService {
 	@Autowired
     private PedidoRepository pedidoRepository;
 
+	
+	// Sugestão de prioridade com base em reincidência
     public Integer sugerirPrioridadeInicial(Pedido novoPedido) {
         int pontuacao = calcularPontosDoProblema(novoPedido.getProblema());
 
@@ -29,14 +31,15 @@ public class PrioridadeService {
         
     }
     
+    
+    // Calcula os pontos do problema
     private int calcularPontosDoProblema(String problemaDeclarado) {
         if (problemaDeclarado == null || problemaDeclarado.trim().isEmpty()) {
-            return 0; // Sem descrição, ganha 0 pontos
+            return 0;
         }
 
         String texto = problemaDeclarado.toLowerCase();
 
-        // Nível Crítico = Ganha 30 pontos
         if (texto.contains("não liga") || 
             texto.contains("nao liga") || 
             texto.contains("queimou") || 
@@ -49,7 +52,6 @@ public class PrioridadeService {
             return 30;
         }
 
-        // Nível Médio = Ganha 15 pontos
         if (texto.contains("lento") || 
             texto.contains("lentidão") || 
             texto.contains("tela azul") || 
@@ -62,7 +64,6 @@ public class PrioridadeService {
             return 15;
         }
 
-        // Se não achou nada crítico, é rotina = 0 pontos
         return 0;
     }
 }

@@ -1,12 +1,17 @@
 package com.example.demo.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.model.Equipamento;
 import com.example.demo.model.Usuario;
+import com.example.demo.repository.EquipamentoRepository;
+import com.example.demo.repository.UsuarioRepository;
 
 import oshi.SystemInfo;
 import oshi.hardware.GraphicsCard;
@@ -15,6 +20,11 @@ import oshi.hardware.HardwareAbstractionLayer;
 
 @Service
 public class EquipamentoService {
+	
+	@Autowired
+	private UsuarioRepository usuarioRepository;
+	@Autowired
+	private EquipamentoRepository equipamentoRepository;
 
 	public Equipamento gerarRelatorioCompleto(Usuario usuarioLogado) {
         
@@ -59,4 +69,42 @@ public class EquipamentoService {
 	    }
 	    return lista;
 	}
+	
+	public void adicionarNovoEquipamento(Equipamento equipamento, Usuario usuarioLogado) {
+		equipamento.setIdUsuario(usuarioLogado.getId());
+    	equipamentoRepository.save(equipamento);
+	}
+	
+	public void alterarEquipamento(Long id, Equipamento novoEquipamento) {
+    	novoEquipamento.setId(id);
+    	equipamentoRepository.save(novoEquipamento);
+    }
+	
+	public void removerEquipamento(Long idEquipamento, Usuario usuarioLogado) {
+		
+    	String idUsuario = usuarioLogado.getId();
+    	boolean fazParte = equipamentoRepository
+    			.verificarPossivelExclusaoEquipamento(idEquipamento, idUsuario);
+    	
+    	if(!fazParte) {
+    		throw new RuntimeException("Há uma O.S em aberto para esse equipamento"); 
+    	}
+    	
+    	equipamentoRepository.deleteById(idEquipamento);
+    }
+	
+	public List<Equipamento> retornarEquipamentosParaPedidos(String idUsuario) {
+        return equipamentoRepository.buscarEquipamentosComStatusFinalizadoPorUsuario(idUsuario);
+    }
+	
+	public List<Equipamento> listarEquipamentosUsuario(Usuario usuarioLogado) {
+	    return equipamentoRepository.findByIdUsuario(usuarioLogado.getId());
+	}
+	
+	public Map<String, Long> retornarDadosEstatisticas(Usuario usuarioLogado) {
+    	Map<String, Long> dados = new HashMap<String, Long>();
+    	dados.put("totalUsuarios", usuarioRepository.count());
+    	dados.put("totalMaquinas", equipamentoRepository.count());
+    	return dados;
+    }
 }
