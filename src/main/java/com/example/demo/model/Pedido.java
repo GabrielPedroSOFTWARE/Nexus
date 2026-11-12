@@ -26,12 +26,15 @@ public class Pedido {
 	private String apelido;
 	private Integer status;
 	private Integer prioridade;
+	private Integer frequencia;
 	private String problema;
 	private LocalDate dataInicioManutencao;
 	private LocalDate dataFinalManutencao;
 	private String idTecnico;
 	@Lob
     private byte[] foto;
+	private String nomeArquivoFoto;
+	private String tipoArquivoFoto;
 	private String descricao;
 	private String observacoesTecnico;
 }

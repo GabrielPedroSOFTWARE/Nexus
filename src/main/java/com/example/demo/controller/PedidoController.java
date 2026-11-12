@@ -48,6 +48,8 @@ public class PedidoController {
 
             if (arquivoFoto != null && !arquivoFoto.isEmpty()) {
                 novoPedido.setFoto(arquivoFoto.getBytes());
+                novoPedido.setNomeArquivoFoto(arquivoFoto.getOriginalFilename());
+                novoPedido.setTipoArquivoFoto(arquivoFoto.getContentType());
             }
             novoPedido.setDataInicioManutencao(LocalDate.now());
             novoPedido.setStatus(0);
