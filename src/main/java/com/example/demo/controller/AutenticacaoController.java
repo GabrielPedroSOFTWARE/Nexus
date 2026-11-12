@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -105,6 +106,22 @@ public class AutenticacaoController {
         return ResponseEntity.ok("Situação do usuário atualizada com sucesso para: Ativo");
     }
     
+    // Nega a solicitação de cadastro do usuário
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/admin/negar-solicitacao-usuario/{id}")
+    public String negarSolicitacaoUsuario(@PathVariable("id") String id) {
+    	
+    	Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        
+        if(!usuario.getStatus().equals("Aguardando análise")) {
+        	return "Usuário já está cadastrado";
+        }
+        
+    	usuarioRepository.deleteById(id);
+    	return "Solicitação negada";
+    }
+    
     // Altera o status da conta
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/admin/alterar-status-conta/{id}")
@@ -161,6 +178,7 @@ public class AutenticacaoController {
     public List<Usuario> retornarUsuarios(@AuthenticationPrincipal Usuario usuarioLogado) {
     	return usuarioRepository.findByIdNot(usuarioLogado.getId());
     }
+    
 }
 
 // Criação de classe de dados

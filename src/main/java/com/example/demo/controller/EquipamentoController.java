@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,6 +41,17 @@ public class EquipamentoController {
         
     	equipamentoRepository.save(equipamento);
         return "Peça salva com sucesso no banco de dados!";
+    }
+    
+    // Atualiza o equipamento no banco de dados
+    @PutMapping("/alterar-equipamento/{id}")
+    public String alterarEquipamento(@PathVariable("id") Long id,
+    		@RequestBody Equipamento novoEquipamento) {
+    	
+    	novoEquipamento.setId(id);
+    	equipamentoRepository.save(novoEquipamento);
+    	
+    	return "Equipamento alterado";
     }
     
     // Remove o equipamento pela id
@@ -74,7 +86,7 @@ public class EquipamentoController {
 	}
 	
 	// Retorna os dados brutos para as estatísticas
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @GetMapping("/totalUsuarios")
     public Map<String, Long> retornarDadosEstatisticas(@AuthenticationPrincipal Usuario usuarioLogado) {
     	Map<String, Long> dados = new HashMap<String, Long>();

@@ -59,10 +59,7 @@ public class SecurityConfig {
         	    "https://gabrielpedrosoftware.github.io"
         	)); 
         
-        // Libera as ações que o Front-end pode fazer (Ler, Enviar, Atualizar, Deletar)
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH")); 
-        
-        // Libera o envio de informações ocultas (essencial para mandar o JSON e o Token de login)
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type")); 
         configuration.setAllowCredentials(true);
         
