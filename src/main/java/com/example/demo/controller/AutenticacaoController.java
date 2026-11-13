@@ -9,13 +9,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.model.AtualizacaoUsuarioDTO;
 import com.example.demo.model.DadosLogin;
 import com.example.demo.model.PerfilUsuario;
 import com.example.demo.model.Usuario;
@@ -78,30 +78,14 @@ public class AutenticacaoController {
     }
     
     
-    // Altera o status da conta
+ // Recebe uma lista com as alterações feitas na tabela
     @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/admin/alterar-status-conta/{id}")
-    public ResponseEntity<String> alterarStatusConta(@PathVariable("id") String id) {
-    	return usuarioService.alterarStatusConta(id);
+    @PutMapping("/admin/salvar-alteracoes-usuarios")
+    public ResponseEntity<String> salvarAlteracoesUsuarios(
+            @RequestBody List<AtualizacaoUsuarioDTO> alteracoes) {
+        usuarioService.salvarAlteracoesEmLote(alteracoes);
+        return ResponseEntity.ok("Todos os usuários foram atualizados com sucesso!");
     }
-    
-    
-    // Altera a permissão de admin da conta
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/admin/alterar-permissao-admin/{id}")
-    public ResponseEntity<String> alterarPermissaoAdmin(@PathVariable("id") String id) {
-    	return usuarioService.alterarPermissaoAdmin(id);
-    }
-    
-    
-    // Altera o perfil da conta
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/admin/alterar-perfil-conta/{id}")
-    public ResponseEntity<String> alterarPerfilConta(@PathVariable("id") String id,
-    		@RequestBody PerfilUsuario perfil) {
-    	return usuarioService.alterarPerfilConta(id, perfil);
-    }
-    
     
     // Retorna todos os usuários cadastrados, com excessão do admin atual
     @PreAuthorize("hasRole('ADMIN')")

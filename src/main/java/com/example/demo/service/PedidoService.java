@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.model.Pedido;
 import com.example.demo.model.Usuario;
 import com.example.demo.repository.PedidoRepository;
+import com.example.demo.repository.UsuarioRepository;
 
 @Service
 public class PedidoService {
@@ -25,6 +27,13 @@ public class PedidoService {
 	private PrioridadeService prioridadeService;
 	@Autowired
 	private HistoricoPedidoService historicoPedidoService;
+	@Autowired
+	private UsuarioRepository usuarioRepository;
+	
+	private List<String> status = List.of("Recebida", "Em diagnóstico",
+			"Em manutenção", "Aguardando peças", "Pronto para retirada",
+			"Concluída");
+	
 	
 	
 	// Cria uma nova O.S
@@ -64,7 +73,8 @@ public class PedidoService {
 		novoPedido.setDataInicioManutencao(pedido.getDataInicioManutencao());
 		novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
 		pedidoRepository.save(novoPedido);
-        historicoPedidoService.registrarAcao(pedido, usuario.getId());
+		String alteracao = "Mudança dos dados da O.S";
+        historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
 	}
 	
 	// Cancela a O.S
@@ -79,7 +89,8 @@ public class PedidoService {
         pedido.setJustificativaCancelamento(justificativa);
         
         pedidoRepository.save(pedido);
-        historicoPedidoService.registrarAcao(pedido, usuario.getId());
+        String alteracao = "O.S cancelada";
+        historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
     }
     
     
@@ -91,14 +102,18 @@ public class PedidoService {
         if(!usuario.isEhAdmin() && !usuario.getId().equals(pedido.getIdTecnico())) 
         	throw new RuntimeException("Sem autorização para alterar o status");
         
-        int status = Integer.parseInt(dados.get("novoStatusId"));
-        pedido.setStatus(status);
+        int statusAntigo = pedido.getStatus();
         
-        if (status == 1) pedido.setObservacoesTecnico(dados.get("observacao"));
-        if (status == 5) pedido.setDescricao(dados.get("descricao"));
+        int statusNovo = Integer.parseInt(dados.get("novoStatusId"));
+        pedido.setStatus(statusNovo);
         
-        notificacaoService.enviarNotificacao(pedido.getIdUsuario(), status);
-        historicoPedidoService.registrarAcao(pedido, usuario.getId());
+        if (statusNovo == 1) pedido.setObservacoesTecnico(dados.get("observacao"));
+        if (statusNovo == 5) pedido.setDescricao(dados.get("descricao"));
+        
+        notificacaoService.enviarNotificacao(pedido.getIdUsuario(), statusNovo);
+        String alteracao = "Status: " +
+        		status.get(statusAntigo) + " -> " + status.get(statusNovo);
+        historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
         
         pedidoRepository.save(pedido);
     }
@@ -109,11 +124,54 @@ public class PedidoService {
     	Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
     	
+    	Usuario tecnicoAntigo = usuarioRepository.findById(pedido.getIdTecnico())
+    			.orElse(null);
+    	
+    	Usuario novoTecnico = usuarioRepository.findById(idTecnico)
+    			.orElseThrow(() -> new RuntimeException("Novo técnico não encontrado"));
+    	
     	pedido.setIdTecnico(idTecnico);
     	
-    	historicoPedidoService.registrarAcao(pedido, usuario.getId());
+    	String alteracao = (tecnicoAntigo != null) ? 
+    			"Técnico: " + tecnicoAntigo.getNome() + " -> " + novoTecnico.getNome() :
+    				"Técnico atribuído: " + novoTecnico.getNome();
+    	
+    	historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
     	
     	pedidoRepository.save(pedido);
+    }
+    
+    
+    // Define/Altera a justificativa de uma O.S
+    public void definirJustificativa(UUID id, String justificativa, Usuario usuario) {
+    	Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+    	
+    	String antigaJustificativa = pedido.getJustificativa();
+    	
+    	pedido.setJustificativaCancelamento(justificativa);
+    	
+    	String alteracao = (antigaJustificativa != null && !antigaJustificativa.isEmpty()) ?
+    			"Alteração de justificativa" : "Definição de justificativa";
+    	
+    	historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
+    	
+    	pedidoRepository.save(pedido);
+    }
+    
+    
+    // Define o prazo de uma O.S
+    public void definirPrazo(UUID id, LocalDate prazo, Usuario usuario) {
+    	Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+    	
+    	pedido.setDataFinalManutencao(prazo);
+    	
+    	var formatador = new SimpleDateFormat("dd/mm/yyyy");
+    	
+    	String alteracao = "Prazo estimado definido: " + formatador.format(prazo);
+    	
+    	historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
     }
 
     

@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -80,7 +81,7 @@ public class PedidoController {
     }
     
     
-    // Altera o status do pedido
+    // Altera o status da O.S
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @PatchMapping("/admin/alterar-status-pedido/{id}")
     public ResponseEntity<String> alterarStatusPedido(@PathVariable("id") UUID id,
@@ -94,6 +95,41 @@ public class PedidoController {
         } 
     }
     
+    
+    // Define a justificativa da O.S
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PatchMapping("/admin/definir-justificativa-pedido/{id}")
+    public ResponseEntity<String> definirJustificativa(
+    		@PathVariable("id") UUID id,
+    		@RequestBody String justificativa,
+    		@AuthenticationPrincipal Usuario usuario) {
+    	
+    	try {
+    		pedidoService.definirJustificativa(id, justificativa, usuario);
+    		return ResponseEntity.ok("Justificativa da O.S alterada");
+    		
+    	} catch (RuntimeException e) {
+    		return ResponseEntity.badRequest().body(e.getMessage());
+    	}
+    }
+    
+    
+    // Define o prazo da O.S
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PatchMapping("/admin/definir-prazo-pedido/{id}")
+    public ResponseEntity<String> definirPrazo(
+    		@PathVariable("id") UUID id,
+    		@RequestBody LocalDate prazo,
+    		@AuthenticationPrincipal Usuario usuario) {
+    	
+    	try {
+    		pedidoService.definirPrazo(id, prazo, usuario);
+    		return ResponseEntity.ok("Prazo da O.S definido");
+    		
+    	} catch (RuntimeException e) {
+    		return ResponseEntity.badRequest().body(e.getMessage());
+    	}
+    }
     
     // Atribui o técino ao pedido
     @PreAuthorize("hasRole('ADMIN')")

@@ -19,7 +19,7 @@ public class HistoricoPedidoService {
 
     
     // Registra o histórico da alteração do pedido
-    public void registrarAcao(Pedido pedido, String idUsuario) {
+    public void registrarAcao(Pedido pedido, String idUsuario, String alteracao) {
         HistoricoPedido historico = new HistoricoPedido();
         
         historico.setIdPedido(pedido.getId());
@@ -36,6 +36,7 @@ public class HistoricoPedidoService {
         historico.setDescricao(pedido.getDescricao());
         historico.setObservacoesTecnico(pedido.getObservacoesTecnico());
         historico.setJustificativaCancelamento(pedido.getJustificativaCancelamento());
+        historico.setAlteracao(alteracao);
         historicoRepository.save(historico);
     }
     

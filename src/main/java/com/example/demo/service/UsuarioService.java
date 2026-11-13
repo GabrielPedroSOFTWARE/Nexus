@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.model.AtualizacaoUsuarioDTO;
 import com.example.demo.model.PerfilUsuario;
 import com.example.demo.model.Usuario;
 import com.example.demo.repository.UsuarioRepository;
@@ -65,50 +65,26 @@ public class UsuarioService {
     }
     
     
-    // Altera o status da conta do usuário
-    public ResponseEntity<String> alterarStatusConta(String id) {
-    	Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
-        Usuario usuario = usuarioOptional.get();
-    	
-    	if(usuario.getStatus().equals("Ativo")) usuario.setStatus("Inativo");
-    		else usuario.setStatus("Ativo");
-    	
-    	usuarioRepository.save(usuario);
-    	return ResponseEntity.ok("Situação do usuário atualizada com sucesso para: "
-    	    	+ usuario.getStatus());
+    // Atualiza múltiplos usuários de uma só vez
+    public void salvarAlteracoesEmLote(List<AtualizacaoUsuarioDTO> alteracoes) {
+        
+        for (AtualizacaoUsuarioDTO dto : alteracoes) {
+            
+            Usuario usuario = usuarioRepository.findById(dto.getId())
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + dto.getId()));
+            
+            if (usuario.getPerfil() != dto.getPerfil() || usuario.isEhAdmin() != dto.isEhAdmin() 
+            		|| !usuario.getStatus().endsWith(dto.getStatus())) {
+            	usuario.setVersaoToken(usuario.getVersaoToken() + 1);   
+            }
+            
+            usuario.setPerfil(dto.getPerfil());
+            usuario.setEhAdmin(dto.isEhAdmin());
+            usuario.setStatus(dto.getStatus());
+            
+            usuarioRepository.save(usuario);
+        }
     }
-    
-    
-    // Altera a permissão de admin do usuário
-    public ResponseEntity<String> alterarPermissaoAdmin(String id) {
-    	Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
-        Usuario usuario = usuarioOptional.get();
-        
-        if(usuario.isEhAdmin()) usuario.setEhAdmin(false);
-        	else usuario.setEhAdmin(true);
-        
-        usuarioRepository.save(usuario);
-        
-        String situacaoAdminUsuario = (usuario.isEhAdmin()) ? 
-        		"é admin" : "não é mais admin";
-        
-        return ResponseEntity.ok("Situação de admin do usuário: " + situacaoAdminUsuario);
-    }
-    
-    
-    // Altera o perfil da conta do usuário
-    public ResponseEntity<String> alterarPerfilConta(String id, PerfilUsuario perfil) {
-    	Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
-        Usuario usuario = usuarioOptional.get();
-        
-        usuario.setPerfil(perfil);
-        usuario.setVersaoToken(usuario.getVersaoToken() + 1);
-        
-        usuarioRepository.save(usuario);
-        
-        return ResponseEntity.ok("Perfil da conta alterado para " + perfil.toString());
-    }
-    
     
     // Retorna os usuários logados, menos o admin
     public List<Usuario> retornarUsuarios(Usuario usuarioLogado) {

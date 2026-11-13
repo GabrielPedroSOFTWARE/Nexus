@@ -36,4 +36,5 @@ public class HistoricoPedido {
 	private String descricao;
 	private String observacoesTecnico;
 	private String justificativaCancelamento;
+	private String alteracao;
 }
