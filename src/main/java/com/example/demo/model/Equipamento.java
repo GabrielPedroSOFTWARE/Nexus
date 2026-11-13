@@ -39,5 +39,6 @@ public class Equipamento {
 	private List<String> placasDeVideo;
 	@ElementCollection
 	private List<String> discos;
+	private String sistemaOperacional;
 	
 }

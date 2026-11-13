@@ -30,8 +30,12 @@ public class EquipamentoController {
     public ResponseEntity<String> adicionarNovoEquipamento(
     		@RequestBody Equipamento equipamento,
     		@AuthenticationPrincipal Usuario usuarioLogado) {
-        equipamentoService.adicionarNovoEquipamento(equipamento, usuarioLogado);
-        return ResponseEntity.ok("Peça salva com sucesso no banco de dados!");
+    	try {
+    		equipamentoService.adicionarNovoEquipamento(equipamento, usuarioLogado);
+    		return ResponseEntity.ok("Peça salva com sucesso no banco de dados!");    		
+    	} catch (RuntimeException e) {
+    		return ResponseEntity.badRequest().body(e.getMessage());
+    	}
     }
     
     

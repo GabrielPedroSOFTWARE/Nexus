@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,25 +31,20 @@ public class EquipamentoService {
 	// Gera o relatório do pc escaneado
 	public Equipamento gerarRelatorioCompleto(Usuario usuarioLogado) {
         
-	    Equipamento equipamento = new Equipamento();
-	    equipamento.setIdUsuario(usuarioLogado.getId());
-	    
-	    SystemInfo informacoes = new SystemInfo();
-	    HardwareAbstractionLayer hardware = informacoes.getHardware();
+		SystemInfo info = new SystemInfo();
+	    HardwareAbstractionLayer hardware = info.getHardware();
 
+	    Equipamento equipamento = new Equipamento();
+	    
+	    equipamento.setIdUsuario(usuarioLogado.getId());
+	    equipamento.setSistemaOperacional(info.getOperatingSystem().toString());
 	    equipamento.setFabricante(hardware.getComputerSystem().getManufacturer());
 	    equipamento.setModelo(hardware.getComputerSystem().getModel());
 	    equipamento.setProcessador(hardware.getProcessor().getProcessorIdentifier().getName());
-
-	    long memoriaEmBytes = hardware.getMemory().getTotal();
-	    int ramEmGb = (int) (memoriaEmBytes / (1024 * 1024 * 1024));
-	    equipamento.setRam(ramEmGb);
+	    equipamento.setRam((int) (hardware.getMemory().getTotal() / 1073741824L)); // 1024^3
+	    equipamento.setPlacasDeVideo(lerPlacasDeVideo(hardware.getGraphicsCards()));
+	    equipamento.setDiscos(lerDiscos(hardware.getDiskStores()));
 	    
-	    List<String> listaDePlacas = lerPlacasDeVideo(hardware.getGraphicsCards());
-	    List<String> listaDeDiscos = lerDiscos(hardware.getDiskStores());
-
-	    equipamento.setPlacasDeVideo(listaDePlacas);
-	    equipamento.setDiscos(listaDeDiscos);
 	    return equipamento;
 	}
 
@@ -77,9 +73,33 @@ public class EquipamentoService {
 	
 	
 	// Adiciona um novo equipamento ao banco de dados
-	public void adicionarNovoEquipamento(Equipamento equipamento, Usuario usuarioLogado) {
-		equipamento.setIdUsuario(usuarioLogado.getId());
-    	equipamentoRepository.save(equipamento);
+	public void adicionarNovoEquipamento(Equipamento equipamentoEnviado, Usuario usuarioLogado) {
+	    
+	    String idUsuario = usuarioLogado.getId();
+	    
+	    Optional<Equipamento> pcExistente = equipamentoRepository
+	            .findByIdUsuarioAndFabricanteAndModeloAndProcessador(
+	                    idUsuario, 
+	                    equipamentoEnviado.getFabricante(),
+	                    equipamentoEnviado.getModelo(), 
+	                    equipamentoEnviado.getProcessador()
+	            );
+	            
+	    if (pcExistente.isPresent()) {
+	        
+	        Equipamento pcParaAtualizar = pcExistente.get();
+	        
+	        pcParaAtualizar.setRam(equipamentoEnviado.getRam());
+	        pcParaAtualizar.setDiscos(equipamentoEnviado.getDiscos());
+	        pcParaAtualizar.setPlacasDeVideo(equipamentoEnviado.getPlacasDeVideo());
+	        
+	        equipamentoRepository.save(pcParaAtualizar);
+	        
+	    } else {
+	        equipamentoEnviado.setIdUsuario(idUsuario);
+	        
+	        equipamentoRepository.save(equipamentoEnviado);
+	    }
 	}
 	
 	
