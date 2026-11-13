@@ -37,6 +37,7 @@ public class HistoricoPedidoService {
         historico.setObservacoesTecnico(pedido.getObservacoesTecnico());
         historico.setJustificativaCancelamento(pedido.getJustificativaCancelamento());
         historico.setAlteracao(alteracao);
+        
         historicoRepository.save(historico);
     }
     

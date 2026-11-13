@@ -49,7 +49,7 @@ public class PedidoController {
     
     
     // Altera uma O.S
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @PutMapping("/admin/alterar-pedido/{id}")
     public ResponseEntity<String> alterarPedido(
     		@ModelAttribute Pedido novoPedido, 
@@ -67,7 +67,7 @@ public class PedidoController {
     
     
     // Cancela a O.S
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @PatchMapping("/admin/cancelar-pedido/{id}")
     public ResponseEntity<String> cancelarPedido(@PathVariable("id") UUID id,
     		@AuthenticationPrincipal Usuario usuario,
@@ -82,7 +82,7 @@ public class PedidoController {
     
     
     // Altera o status da O.S
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @PatchMapping("/admin/alterar-status-pedido/{id}")
     public ResponseEntity<String> alterarStatusPedido(@PathVariable("id") UUID id,
     		@RequestBody Map<String, String> dados,
@@ -97,7 +97,7 @@ public class PedidoController {
     
     
     // Define a justificativa da O.S
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @PatchMapping("/admin/definir-justificativa-pedido/{id}")
     public ResponseEntity<String> definirJustificativa(
     		@PathVariable("id") UUID id,
@@ -115,7 +115,7 @@ public class PedidoController {
     
     
     // Define o prazo da O.S
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @PatchMapping("/admin/definir-prazo-pedido/{id}")
     public ResponseEntity<String> definirPrazo(
     		@PathVariable("id") UUID id,
@@ -169,14 +169,14 @@ public class PedidoController {
     
     
     // Retorna as O.Ss por frequência
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @GetMapping("/listar-pedidos-frequencia")
     public List<Pedido> listarManutencoesPorSequencia(@RequestBody int frequencia) {
     	return pedidoService.listarManutencoesPorFrequencia(frequencia);
     }
     
     // Retorna as O.Ss do admin
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @GetMapping("/listar-pedidos")
     public List<Pedido> listarManutencoesAdmin () {
     	return pedidoService.listarManutencoesAdmin();

@@ -78,7 +78,7 @@ public class AutenticacaoController {
     }
     
     
- // Recebe uma lista com as alterações feitas na tabela
+    // Recebe uma lista com as alterações feitas na tabela
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/salvar-alteracoes-usuarios")
     public ResponseEntity<String> salvarAlteracoesUsuarios(
@@ -86,6 +86,7 @@ public class AutenticacaoController {
         usuarioService.salvarAlteracoesEmLote(alteracoes);
         return ResponseEntity.ok("Todos os usuários foram atualizados com sucesso!");
     }
+    
     
     // Retorna todos os usuários cadastrados, com excessão do admin atual
     @PreAuthorize("hasRole('ADMIN')")

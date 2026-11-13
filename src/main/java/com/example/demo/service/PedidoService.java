@@ -173,6 +173,12 @@ public class PedidoService {
     	
     	historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
     }
+    
+    
+    // Devolve a O.S para a fila
+    public void devolverParaAFila(UUID id, Usuario usuario) {
+    	
+    }
 
     
     // Lista as O.Ss por equipamento

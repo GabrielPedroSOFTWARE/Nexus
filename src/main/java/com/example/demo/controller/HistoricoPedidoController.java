@@ -19,7 +19,7 @@ public class HistoricoPedidoController {
 	HistoricoPedidoService historicoPedidoService;
 
 	// Retorna o histórico das O.Ss alteradas
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
 	@GetMapping("/retornar-historico-pedido-alt/{id}")
 	public List<HistoricoPedido> retornarHistoricoAlteracaoPedido(@PathVariable("id") UUID id) {
 		return historicoPedidoService.buscarHistoricoDoPedido(id);
