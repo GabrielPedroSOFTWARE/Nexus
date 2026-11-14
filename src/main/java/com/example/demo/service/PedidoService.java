@@ -146,7 +146,7 @@ public class PedidoService {
     }
     
     
-    // Define/Altera a justificativa de uma O.S
+    // Definir/Alterar a justificativa de uma O.S
     public void definirJustificativa(UUID id, String justificativa, Usuario usuario) {
     	Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
