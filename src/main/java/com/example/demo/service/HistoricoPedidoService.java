@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ public class HistoricoPedidoService {
 
     @Autowired
     private HistoricoPedidoRepository historicoRepository;
+    private DateTimeFormatter formatadorDataHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     
     // Registra o histórico da alteração do pedido
@@ -24,7 +26,7 @@ public class HistoricoPedidoService {
         
         historico.setIdPedido(pedido.getId());
         historico.setIdUsuarioAutor(idUsuario);
-        historico.setDataHora(LocalDateTime.now());
+        historico.setDataHora(formatadorDataHora.format(LocalDateTime.now()));
         historico.setApelido(pedido.getApelido());
         historico.setStatus(pedido.getStatus());
         historico.setPrioridade(pedido.getPrioridade());

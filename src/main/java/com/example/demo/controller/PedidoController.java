@@ -160,7 +160,7 @@ public class PedidoController {
     
     
     // Retorna as O.Ss atribuídas ao técnico
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
     @GetMapping("/listar-pedidos-atribuidos")
     public List<Pedido> listarManutencoesAtribuidasTecnico(
     		@AuthenticationPrincipal Usuario usuarioLogado) {

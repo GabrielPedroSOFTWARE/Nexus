@@ -29,9 +29,10 @@ public class NotificacaoController {
     
     // Marca a notificação como lida
     @PatchMapping("/marcar-notificacao/{id}")
-    public ResponseEntity<String> marcarNotificacaoComoLida(@PathVariable("id") UUID id) {
+    public ResponseEntity<String> marcarNotificacaoComoLida(@PathVariable("id") UUID id,
+    		@AuthenticationPrincipal Usuario usuario) {
     	try {
-    		notificacaoService.marcarNotificacaoComoLida(id);
+    		notificacaoService.marcarNotificacaoComoLida(id, usuario);
     		return ResponseEntity.ok("Notificação marcada como lida");
     	} catch(RuntimeException e) {
     		return ResponseEntity.badRequest().body(e.getMessage());

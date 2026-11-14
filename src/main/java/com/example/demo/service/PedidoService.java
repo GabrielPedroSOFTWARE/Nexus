@@ -124,8 +124,12 @@ public class PedidoService {
     	Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
     	
-    	Usuario tecnicoAntigo = usuarioRepository.findById(pedido.getIdTecnico())
-    			.orElse(null);
+    	Usuario tecnicoAntigo = null;
+    	
+    	if(pedido.getIdTecnico() != null) {
+    		tecnicoAntigo = usuarioRepository.findById(pedido.getIdTecnico())
+        			.orElseThrow(() -> new RuntimeException("Técnico anterior não encontrado"));
+    	}
     	
     	Usuario novoTecnico = usuarioRepository.findById(idTecnico)
     			.orElseThrow(() -> new RuntimeException("Novo técnico não encontrado"));

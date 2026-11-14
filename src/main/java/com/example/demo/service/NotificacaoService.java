@@ -19,9 +19,14 @@ public class NotificacaoService {
 	
 	
 	// Marca a notificação como lida
-	public void marcarNotificacaoComoLida(UUID id) {
+	public void marcarNotificacaoComoLida(UUID id, Usuario usuario) {
+		
 		Notificacao notificacao = notificacaoRepository.findById(id)
     			.orElseThrow(() -> new RuntimeException("Notificação não encontrada"));
+		
+		if(notificacao.getIdUsuario() != usuario.getId()) {
+			throw new RuntimeException("Você não tem autorização para marcar essa notificação como lida");
+		}
     	
     	notificacao.setLida(true);
     	

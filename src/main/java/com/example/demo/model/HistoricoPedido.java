@@ -24,7 +24,7 @@ public class HistoricoPedido {
     private UUID id;
     private UUID idPedido;
     private String idUsuarioAutor; 
-    private LocalDateTime dataHora; 
+    private String dataHora; 
     private String apelido;
 	private Integer status;
 	private Integer prioridade;
