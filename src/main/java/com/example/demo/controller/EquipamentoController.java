@@ -24,8 +24,15 @@ public class EquipamentoController {
     private EquipamentoService equipamentoService;
 
 	
+	// Realiza a verificação das peças do computador
+    @GetMapping("/user/pecas")
+    public Equipamento verificarPecas(@AuthenticationPrincipal Usuario usuarioLogado) {
+        return equipamentoService.gerarRelatorioCompleto(usuarioLogado);
+    }
+	
+	
 	// Salva o equipamento no banco de dados
-    @PostMapping("/adicionar-equipamento")
+    @PostMapping("/user/adicionar-equipamento")
     public ResponseEntity<String> adicionarNovoEquipamento(
     		@RequestBody Equipamento equipamento,
     		@AuthenticationPrincipal Usuario usuarioLogado) {
@@ -39,7 +46,7 @@ public class EquipamentoController {
     
     
     // Atualiza o equipamento no banco de dados
-    @PutMapping("/alterar-equipamento/{id}")
+    @PutMapping("/user/alterar-equipamento/{id}")
     public ResponseEntity<String> alterarEquipamento(@PathVariable("id") Long id,
     		@RequestBody Equipamento novoEquipamento) {
     	
@@ -49,7 +56,7 @@ public class EquipamentoController {
     
     
     // Remove o equipamento pela id
-    @DeleteMapping("/remover-equipamento/{id}")
+    @DeleteMapping("/user/remover-equipamento/{id}")
     public ResponseEntity<String> removerEquipamento(@PathVariable("id") Long idEquipamento,
     		@AuthenticationPrincipal Usuario usuarioLogado) {
     	try {
@@ -62,23 +69,16 @@ public class EquipamentoController {
     	}
     }
     
-    
-    @GetMapping("/equipamentos-para-pedidos/{cpfUsuario}")
+    // Retorna os equipamentos que podem receber uma O.S
+    @GetMapping("/user/equipamentos-para-pedidos/{cpfUsuario}")
     public List<Equipamento> retornarEquipamentosParaPedidos(
     	@PathVariable("cpfUsuario") String cpfUsuario) {
         return equipamentoService.retornarEquipamentosParaPedidos(cpfUsuario);
     }
     
     
-    // Realiza a verificação das peças do computador
-    @GetMapping("/pecas")
-    public Equipamento verificarPecas(@AuthenticationPrincipal Usuario usuarioLogado) {
-        return equipamentoService.gerarRelatorioCompleto(usuarioLogado);
-    }
-    
-    
     // Retorna os equipamentos cadastrados
-	@GetMapping("/listar-equipamentos-usuario")
+	@GetMapping("/user/listar-equipamentos-usuario")
 	public List<Equipamento> listarEquipamentosUsuario(@AuthenticationPrincipal Usuario usuarioLogado) {
 	    return equipamentoService.listarEquipamentosUsuario(usuarioLogado);
 	}

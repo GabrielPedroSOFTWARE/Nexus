@@ -17,7 +17,7 @@ public class HistoricoPedidoController {
 	@Autowired
 	HistoricoPedidoService historicoPedidoService;
 
-	// Retorna o histórico das O.Ss alteradas
+	// Retorna o histórico da O.S alterada
 	@GetMapping("/backoffice/retornar-historico-pedido-alt/{id}")
 	public List<HistoricoPedido> retornarHistoricoAlteracaoPedido(@PathVariable("id") UUID id) {
 		return historicoPedidoService.buscarHistoricoDoPedido(id);

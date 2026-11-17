@@ -32,7 +32,7 @@ public class PedidoController {
 
 	
 	// Salva a solicitação no banco de dados
-    @PostMapping(value = "/criar-pedido", consumes = "multipart/form-data")
+    @PostMapping(value = "/user/criar-pedido", consumes = "multipart/form-data")
     public ResponseEntity<String> criarNovoPedido(
             @ModelAttribute Pedido novoPedido, 
             @RequestParam(value = "arquivoImagem", required = false) MultipartFile arquivoFoto,
