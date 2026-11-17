@@ -21,11 +21,11 @@ public class HistoricoPedidoService {
 
     
     // Registra o histórico da alteração do pedido
-    public void registrarAcao(Pedido pedido, String idUsuario, String alteracao) {
+    public void registrarAcao(Pedido pedido, String cpfUsuario, String alteracao) {
         HistoricoPedido historico = new HistoricoPedido();
         
         historico.setIdPedido(pedido.getId());
-        historico.setIdUsuarioAutor(idUsuario);
+        historico.setCpfUsuarioAutor(cpfUsuario);
         historico.setDataHora(formatadorDataHora.format(LocalDateTime.now()));
         historico.setApelido(pedido.getApelido());
         historico.setStatus(pedido.getStatus());

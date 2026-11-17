@@ -30,19 +30,17 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Usuario implements UserDetails {
 
-    @Id
-    private String id;
     private String nome;
     private String email;
     private String setor;
     private String telefone;
     private LocalDateTime dataHoraCadastro;
-    // Login não pode ser repetido
+    @Id
     @Column(unique = true)
-    private String login;
+    private String cpf;
     private String senha;
     private String justificativa;
-    
+
     @Enumerated(EnumType.STRING)
     private PerfilUsuario perfil = PerfilUsuario.PENDENT;
     private String status = "Aguardando análise";
@@ -74,7 +72,7 @@ public class Usuario implements UserDetails {
     @JsonIgnore
     @Override
     public String getUsername() {
-        return login;
+        return cpf;
     }
     
 }

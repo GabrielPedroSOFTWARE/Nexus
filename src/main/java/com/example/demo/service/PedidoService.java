@@ -48,7 +48,7 @@ public class PedidoService {
 		
         novoPedido.setDataInicioManutencao(LocalDate.now());
         novoPedido.setStatus(0);
-        novoPedido.setIdUsuario(usuario.getId());
+        novoPedido.setCpfUsuario(usuario.getCpf());
         novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
         
         pedidoRepository.save(novoPedido);
@@ -69,12 +69,12 @@ public class PedidoService {
             novoPedido.setTipoArquivoFoto(arquivoFoto.getContentType());
         }
 		novoPedido.setId(id);
-		novoPedido.setIdUsuario(pedido.getIdUsuario());
+		novoPedido.setCpfUsuario(pedido.getCpfUsuario());
 		novoPedido.setDataInicioManutencao(pedido.getDataInicioManutencao());
 		novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
 		pedidoRepository.save(novoPedido);
 		String alteracao = "Mudança dos dados da O.S";
-        historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
+        historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
 	}
 	
 	// Cancela a O.S
@@ -82,7 +82,7 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
         
-        if(!usuario.isEhAdmin() && !usuario.getId().equals(pedido.getIdTecnico())) 
+        if(!usuario.isEhAdmin() && !usuario.getCpf().equals(pedido.getIdTecnico())) 
             throw new RuntimeException("Sem autorização para alterar o status");
         
         pedido.setStatus(6);
@@ -90,7 +90,7 @@ public class PedidoService {
         
         pedidoRepository.save(pedido);
         String alteracao = "O.S cancelada";
-        historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
+        historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
     }
     
     
@@ -99,7 +99,7 @@ public class PedidoService {
     	Pedido pedido = pedidoRepository.findById(id)
     			.orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
         
-        if(!usuario.isEhAdmin() && !usuario.getId().equals(pedido.getIdTecnico())) 
+        if(!usuario.isEhAdmin() && !usuario.getCpf().equals(pedido.getIdTecnico())) 
         	throw new RuntimeException("Sem autorização para alterar o status");
         
         int statusAntigo = pedido.getStatus();
@@ -110,10 +110,10 @@ public class PedidoService {
         if (statusNovo == 1) pedido.setObservacoesTecnico(dados.get("observacao"));
         if (statusNovo == 5) pedido.setDescricao(dados.get("descricao"));
         
-        notificacaoService.enviarNotificacao(pedido.getIdUsuario(), statusNovo);
+        notificacaoService.enviarNotificacao(pedido.getCpfUsuario(), statusNovo);
         String alteracao = "Status: " +
         		status.get(statusAntigo) + " -> " + status.get(statusNovo);
-        historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
+        historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
         
         pedidoRepository.save(pedido);
     }
@@ -140,7 +140,7 @@ public class PedidoService {
     			"Técnico: " + tecnicoAntigo.getNome() + " -> " + novoTecnico.getNome() :
     				"Técnico atribuído: " + novoTecnico.getNome();
     	
-    	historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
+    	historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
     	
     	pedidoRepository.save(pedido);
     }
@@ -158,7 +158,7 @@ public class PedidoService {
     	String alteracao = (antigaJustificativa != null && !antigaJustificativa.isEmpty()) ?
     			"Alteração de justificativa" : "Definição de justificativa";
     	
-    	historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
+    	historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
     	
     	pedidoRepository.save(pedido);
     }
@@ -175,7 +175,7 @@ public class PedidoService {
     	
     	String alteracao = "Prazo estimado definido: " + formatador.format(prazo);
     	
-    	historicoPedidoService.registrarAcao(pedido, usuario.getId(), alteracao);
+    	historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
     }
     
     
@@ -193,13 +193,13 @@ public class PedidoService {
     
     // Lista as O.Ss por usuário
     public List<Pedido> listarManutencoesUsuario (Usuario usuarioLogado) {
-		return pedidoRepository.findByIdUsuario(usuarioLogado.getId());
+		return pedidoRepository.findByCpfUsuario(usuarioLogado.getCpf());
 	}
     
     
     // Lista as O.Ss por técnico
     public List<Pedido> listarManutencoesAtribuidas(Usuario usuarioLogado) {
-    	return pedidoRepository.findByIdTecnico(usuarioLogado.getId());
+    	return pedidoRepository.findByIdTecnico(usuarioLogado.getCpf());
     }
     
     

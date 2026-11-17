@@ -36,7 +36,7 @@ public class EquipamentoService {
 
 	    Equipamento equipamento = new Equipamento();
 	    
-	    equipamento.setIdUsuario(usuarioLogado.getId());
+	    equipamento.setCpfUsuario(usuarioLogado.getCpf());
 	    equipamento.setSistemaOperacional(info.getOperatingSystem().toString());
 	    equipamento.setFabricante(hardware.getComputerSystem().getManufacturer());
 	    equipamento.setModelo(hardware.getComputerSystem().getModel());
@@ -75,11 +75,11 @@ public class EquipamentoService {
 	// Adiciona um novo equipamento ao banco de dados
 	public void adicionarNovoEquipamento(Equipamento equipamentoEnviado, Usuario usuarioLogado) {
 	    
-	    String idUsuario = usuarioLogado.getId();
+	    String cpfUsuario = usuarioLogado.getCpf();
 	    
 	    Optional<Equipamento> pcExistente = equipamentoRepository
-	            .findByIdUsuarioAndFabricanteAndModeloAndProcessador(
-	                    idUsuario, 
+	            .findByCpfUsuarioAndFabricanteAndModeloAndProcessador(
+	                    cpfUsuario, 
 	                    equipamentoEnviado.getFabricante(),
 	                    equipamentoEnviado.getModelo(), 
 	                    equipamentoEnviado.getProcessador()
@@ -96,7 +96,7 @@ public class EquipamentoService {
 	        equipamentoRepository.save(pcParaAtualizar);
 	        
 	    } else {
-	        equipamentoEnviado.setIdUsuario(idUsuario);
+	        equipamentoEnviado.setCpfUsuario(cpfUsuario);
 	        
 	        equipamentoRepository.save(equipamentoEnviado);
 	    }
@@ -113,9 +113,9 @@ public class EquipamentoService {
 	// Remove um equipamento do banco de dados
 	public void removerEquipamento(Long idEquipamento, Usuario usuarioLogado) {
 		
-    	String idUsuario = usuarioLogado.getId();
+    	String cpfUsuario = usuarioLogado.getCpf();
     	boolean fazParte = equipamentoRepository
-    			.verificarPossivelExclusaoEquipamento(idEquipamento, idUsuario);
+    			.verificarPossivelExclusaoEquipamento(idEquipamento, cpfUsuario);
     	
     	if(!fazParte) {
     		throw new RuntimeException("Há uma O.S em aberto para esse equipamento"); 
@@ -126,14 +126,14 @@ public class EquipamentoService {
 	
 	
 	// Retorna os equipamentos que podem receber uma O.S
-	public List<Equipamento> retornarEquipamentosParaPedidos(String idUsuario) {
-        return equipamentoRepository.buscarEquipamentosComStatusFinalizadoPorUsuario(idUsuario);
+	public List<Equipamento> retornarEquipamentosParaPedidos(String cpfUsuario) {
+        return equipamentoRepository.buscarEquipamentosComStatusFinalizadoPorUsuario(cpfUsuario);
     }
 	
 	
 	// Retorna os equipamentos por usuário
 	public List<Equipamento> listarEquipamentosUsuario(Usuario usuarioLogado) {
-	    return equipamentoRepository.findByIdUsuario(usuarioLogado.getId());
+	    return equipamentoRepository.findByCpfUsuario(usuarioLogado.getCpf());
 	}
 	
 	

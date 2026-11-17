@@ -10,6 +10,6 @@ import com.example.demo.model.Usuario;
 public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 	List<Usuario> findByStatus(String status);
 	// Procura o usuário na base de dados pelo login
-    UserDetails findByLogin(String login); 
-    List<Usuario> findByIdNot(String id);
+    UserDetails findByCpf(String cpf); 
+    List<Usuario> findByCpfNot(String cpf);
 }

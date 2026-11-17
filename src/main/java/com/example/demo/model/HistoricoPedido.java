@@ -1,7 +1,6 @@
 package com.example.demo.model;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Entity;
@@ -23,7 +22,7 @@ public class HistoricoPedido {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private UUID idPedido;
-    private String idUsuarioAutor; 
+    private String cpfUsuarioAutor; 
     private String dataHora; 
     private String apelido;
 	private Integer status;

@@ -29,7 +29,7 @@ public class Equipamento {
 	    allocationSize = 1
 	)
 	private Long id;
-	private String idUsuario;
+	private String cpfUsuario;
 	private String fabricante;
 	private String modelo;
 	private String processador;

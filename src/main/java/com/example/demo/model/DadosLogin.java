@@ -1,3 +1,3 @@
 package com.example.demo.model;
 
-public record DadosLogin(String login, String senha) {}
+public record DadosLogin(String cpf, String senha) {}

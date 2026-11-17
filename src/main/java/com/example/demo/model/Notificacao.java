@@ -15,10 +15,10 @@ import lombok.Setter;
 @Setter
 public class Notificacao {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID) // Ou UUID, como preferir
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     
-    private String idUsuario; // Para quem é o aviso
+    private String cpfUsuario; 
     private Integer status;
     private String resumo;
     private LocalDate prazo;

@@ -88,6 +88,6 @@ public class UsuarioService {
     
     // Retorna os usuários logados, menos o admin
     public List<Usuario> retornarUsuarios(Usuario usuarioLogado) {
-    	return usuarioRepository.findByIdNot(usuarioLogado.getId());
+    	return usuarioRepository.findByCpfNot(usuarioLogado.getCpf());
     }
 }

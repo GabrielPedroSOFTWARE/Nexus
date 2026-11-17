@@ -8,7 +8,6 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -49,8 +48,7 @@ public class PedidoController {
     
     
     // Altera uma O.S
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
-    @PutMapping("/admin/alterar-pedido/{id}")
+    @PutMapping("/backoffice/alterar-pedido/{id}")
     public ResponseEntity<String> alterarPedido(
     		@ModelAttribute Pedido novoPedido, 
             @RequestParam(value = "arquivoImagem", required = false) MultipartFile arquivoFoto,
@@ -67,8 +65,7 @@ public class PedidoController {
     
     
     // Cancela a O.S
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
-    @PatchMapping("/admin/cancelar-pedido/{id}")
+    @PatchMapping("/backoffice/cancelar-pedido/{id}")
     public ResponseEntity<String> cancelarPedido(@PathVariable("id") UUID id,
     		@AuthenticationPrincipal Usuario usuario,
     		@RequestBody String justificativa) {
@@ -82,8 +79,7 @@ public class PedidoController {
     
     
     // Altera o status da O.S
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
-    @PatchMapping("/admin/alterar-status-pedido/{id}")
+    @PatchMapping("/backoffice/alterar-status-pedido/{id}")
     public ResponseEntity<String> alterarStatusPedido(@PathVariable("id") UUID id,
     		@RequestBody Map<String, String> dados,
     		@AuthenticationPrincipal Usuario usuario) {
@@ -97,8 +93,7 @@ public class PedidoController {
     
     
     // Define a justificativa da O.S
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
-    @PatchMapping("/admin/definir-justificativa-pedido/{id}")
+    @PatchMapping("/backoffice/definir-justificativa-pedido/{id}")
     public ResponseEntity<String> definirJustificativa(
     		@PathVariable("id") UUID id,
     		@RequestBody String justificativa,
@@ -115,8 +110,7 @@ public class PedidoController {
     
     
     // Define o prazo da O.S
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
-    @PatchMapping("/admin/definir-prazo-pedido/{id}")
+    @PatchMapping("/backoffice/definir-prazo-pedido/{id}")
     public ResponseEntity<String> definirPrazo(
     		@PathVariable("id") UUID id,
     		@RequestBody LocalDate prazo,
@@ -132,7 +126,6 @@ public class PedidoController {
     }
     
     // Atribui o técino ao pedido
-    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/admin/atribuir-tecnico/{id}")
     public ResponseEntity<String> atribuirTecnico(@PathVariable("id") UUID id,
     		@RequestBody String idTecnico, @AuthenticationPrincipal Usuario usuario) {
@@ -160,8 +153,7 @@ public class PedidoController {
     
     
     // Retorna as O.Ss atribuídas ao técnico
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
-    @GetMapping("/listar-pedidos-atribuidos")
+    @GetMapping("/backoffice/listar-pedidos-atribuidos")
     public List<Pedido> listarManutencoesAtribuidasTecnico(
     		@AuthenticationPrincipal Usuario usuarioLogado) {
     	return pedidoService.listarManutencoesAtribuidas(usuarioLogado);
@@ -169,15 +161,13 @@ public class PedidoController {
     
     
     // Retorna as O.Ss por frequência
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
-    @GetMapping("/listar-pedidos-frequencia")
+    @GetMapping("/backoffice/listar-pedidos-frequencia")
     public List<Pedido> listarManutencoesPorSequencia(@RequestBody int frequencia) {
     	return pedidoService.listarManutencoesPorFrequencia(frequencia);
     }
     
     // Retorna as O.Ss do admin
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
-    @GetMapping("/listar-pedidos")
+    @GetMapping("/backoffice/listar-pedidos")
     public List<Pedido> listarManutencoesAdmin () {
     	return pedidoService.listarManutencoesAdmin();
     }

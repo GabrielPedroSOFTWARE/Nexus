@@ -24,7 +24,7 @@ public class TokenService {
             Algorithm algoritmo = Algorithm.HMAC256(senhaSecreta);
             return JWT.create()
                     .withIssuer("API Nexus") // O nome de quem emitiu o token
-                    .withSubject(usuario.getLogin()) // Quem é o dono do token
+                    .withSubject(usuario.getCpf()) // Quem é o dono do token
                     .withClaim("versaoToken", usuario.getVersaoToken())
                     .withExpiresAt(dataExpiracao()) // Quando o token perde a validade
                     .sign(algoritmo);

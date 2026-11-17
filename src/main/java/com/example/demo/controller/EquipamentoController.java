@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,10 +63,10 @@ public class EquipamentoController {
     }
     
     
-    @GetMapping("/equipamentos-para-pedidos")
+    @GetMapping("/equipamentos-para-pedidos/{cpfUsuario}")
     public List<Equipamento> retornarEquipamentosParaPedidos(
-    	@PathVariable("idUsuario") String idUsuario) {
-        return equipamentoService.retornarEquipamentosParaPedidos(idUsuario);
+    	@PathVariable("cpfUsuario") String cpfUsuario) {
+        return equipamentoService.retornarEquipamentosParaPedidos(cpfUsuario);
     }
     
     
@@ -86,8 +85,7 @@ public class EquipamentoController {
 	
 	
 	// Retorna os dados brutos para as estatísticas
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPPORT')")
-    @GetMapping("/totalUsuarios")
+    @GetMapping("/backoffice/totalUsuarios")
     public Map<String, Long> retornarDadosEstatisticas() {
     	return equipamentoService.retornarDadosEstatisticas();
     }

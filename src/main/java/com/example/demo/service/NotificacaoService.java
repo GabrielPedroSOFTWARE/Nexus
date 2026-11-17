@@ -24,7 +24,7 @@ public class NotificacaoService {
 		Notificacao notificacao = notificacaoRepository.findById(id)
     			.orElseThrow(() -> new RuntimeException("Notificação não encontrada"));
 		
-		if(notificacao.getIdUsuario() != usuario.getId()) {
+		if(!notificacao.getCpfUsuario().equals(usuario.getCpf())) {
 			throw new RuntimeException("Você não tem autorização para marcar essa notificação como lida");
 		}
     	
@@ -36,14 +36,14 @@ public class NotificacaoService {
 	
 	// Retorna as notificações do usuário
 	public List<Notificacao> retornarNotificacoesUsuario(@AuthenticationPrincipal Usuario usuario) {
-    	return notificacaoRepository.findByIdUsuario(usuario.getId());
+    	return notificacaoRepository.findByCpfUsuario(usuario.getCpf());
     }
 	
 	
 	// Envia a notificação de alteração do status para o usuário
-	public void enviarNotificacao(String idUsuario, int status) {
+	public void enviarNotificacao(String cpfUsuario, int status) {
 	    Notificacao aviso = new Notificacao();
-	    aviso.setIdUsuario(idUsuario);
+	    aviso.setCpfUsuario(cpfUsuario);
 	    aviso.setStatus(status);
 	    notificacaoRepository.save(aviso);
 	}

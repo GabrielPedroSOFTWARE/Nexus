@@ -22,7 +22,7 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 	private Long idPC;
-	private String idUsuario;
+	private String cpfUsuario;
 	private String apelido;
 	private Integer status;
 	private Integer prioridade;

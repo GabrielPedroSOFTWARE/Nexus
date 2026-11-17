@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +36,7 @@ public class AutenticacaoController {
         try {
         	return autenticacaoService.efetuarLogin(dados);
         } catch(Exception e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Login ou senha errados");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Cpf ou senha errados");
         }
     }
     
@@ -51,7 +50,6 @@ public class AutenticacaoController {
     
     
     // Mostra os usuários pendentes
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/usuarios-pendentes")
     public List<Usuario> verificarPendentes() {
         return usuarioService.verificarPendentes();
@@ -59,7 +57,6 @@ public class AutenticacaoController {
     
     
     // Aceita a solicitação de cadastro
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/aceitar-sollicitacao/{id}")
     public ResponseEntity<String> atualizarStatusUsuario(
             @PathVariable("id") String id,
@@ -70,7 +67,6 @@ public class AutenticacaoController {
     
     
     // Nega a solicitação de cadastro do usuário
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/admin/negar-solicitacao-usuario/{id}")
     public ResponseEntity<String> negarSolicitacaoUsuario(@PathVariable("id") String id) {
     	usuarioService.negarSolicitacaoUsuario(id);
@@ -79,7 +75,6 @@ public class AutenticacaoController {
     
     
     // Recebe uma lista com as alterações feitas na tabela
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/salvar-alteracoes-usuarios")
     public ResponseEntity<String> salvarAlteracoesUsuarios(
             @RequestBody List<AtualizacaoUsuarioDTO> alteracoes) {
@@ -89,7 +84,6 @@ public class AutenticacaoController {
     
     
     // Retorna todos os usuários cadastrados, com excessão do admin atual
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/retornar-todos-menos-atual")
     public List<Usuario> retornarUsuarios(@AuthenticationPrincipal Usuario usuarioLogado) {
     	return usuarioService.retornarUsuarios(usuarioLogado);

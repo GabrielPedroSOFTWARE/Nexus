@@ -30,8 +30,8 @@ public class AutenticacaoService implements UserDetailsService {
     
     
     // Verifica se o login está inativo ou necessita de aprovação
-    public ResponseEntity<?> verificarStatusUsuario(String login) {
-        Usuario usuario = (Usuario) usuarioRepository.findByLogin(login);
+    public ResponseEntity<?> verificarStatusUsuario(String cpf) {
+        Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
         
         if (usuario == null) return null;
         
@@ -50,12 +50,12 @@ public class AutenticacaoService implements UserDetailsService {
     // Efetua o login
     public ResponseEntity<?> efetuarLogin(DadosLogin dados) { 
         
-        ResponseEntity<?> erroDeStatus = verificarStatusUsuario(dados.login());
+        ResponseEntity<?> erroDeStatus = verificarStatusUsuario(dados.cpf());
         
         if (erroDeStatus != null) return erroDeStatus;
         
         Usuario logado = (Usuario) manager.authenticate(
-                new UsernamePasswordAuthenticationToken(dados.login(), dados.senha())
+                new UsernamePasswordAuthenticationToken(dados.cpf(), dados.senha())
             ).getPrincipal();
             return ResponseEntity.ok(Map.of(
                 "token", tokenService.gerarToken(logado),
@@ -68,6 +68,6 @@ public class AutenticacaoService implements UserDetailsService {
     // Verifica se o usuário cadastrado
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return usuarioRepository.findByLogin(username);
+        return usuarioRepository.findByCpf(username);
     }
 }

@@ -37,15 +37,15 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     // Verifica o token
     private void verificarToken(String token) {
-        String login = tokenService.validarToken(token);
-        if (login == null) return;
+        String cpf = tokenService.validarToken(token);
+        if (cpf == null) return;
         
-        Usuario usuario = (Usuario) usuarioRepository.findByLogin(login);
+        Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
         if (usuario == null) return;
         
         Integer versaoNoToken = tokenService.extrairVersaoToken(token);
         if (versaoNoToken == null || !versaoNoToken.equals(usuario.getVersaoToken())) {
-            System.out.println("Bloqueado! Token desatualizado para o usuário: " + login);
+            System.out.println("Bloqueado! Token desatualizado para o usuário: " + cpf);
             return; 
         }
         

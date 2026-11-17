@@ -9,5 +9,5 @@ import com.example.demo.model.Notificacao;
 
 
 public interface NotificacaoRepository extends JpaRepository<Notificacao, UUID> {
-	List<Notificacao> findByIdUsuario(String id);
+	List<Notificacao> findByCpfUsuario(String id);
 }
