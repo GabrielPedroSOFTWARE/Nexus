@@ -30,7 +30,7 @@ public class Pedido {
 	private String problema;
 	private LocalDate dataInicioManutencao;
 	private LocalDate dataFinalManutencao;
-	private String idTecnico;
+	private String cpfTecnico;
 	@Lob
     private byte[] foto;
 	private String nomeArquivoFoto;

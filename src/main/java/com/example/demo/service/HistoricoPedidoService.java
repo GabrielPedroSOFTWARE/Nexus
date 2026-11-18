@@ -34,7 +34,7 @@ public class HistoricoPedidoService {
         historico.setProblema(pedido.getProblema());
         historico.setDataInicioManutencao(pedido.getDataInicioManutencao());
         historico.setDataFinalManutencao(pedido.getDataFinalManutencao());
-        historico.setIdTecnico(pedido.getIdTecnico());
+        historico.setIdTecnico(pedido.getCpfTecnico());
         historico.setDescricao(pedido.getDescricao());
         historico.setObservacoesTecnico(pedido.getObservacoesTecnico());
         historico.setJustificativaCancelamento(pedido.getJustificativaCancelamento());

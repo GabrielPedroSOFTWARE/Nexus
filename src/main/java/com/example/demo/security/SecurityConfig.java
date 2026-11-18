@@ -35,9 +35,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req -> {
                     req.requestMatchers("/login").permitAll();
                     req.requestMatchers("/cadastrar").permitAll();
-                    req.requestMatchers("/user/**").hasRole("USER");
+                    req.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN");
                     req.requestMatchers("/backoffice/**").hasAnyRole("ADMIN", "MANAGER", "SUPPORT");
-                    req.requestMatchers("/admin/**").hasRole("ADMIN");
+                    req.requestMatchers("/adm/**").hasRole("ADMIN");
                     req.anyRequest().authenticated();
                 }).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

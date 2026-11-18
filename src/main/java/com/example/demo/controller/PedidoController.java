@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -109,28 +108,12 @@ public class PedidoController {
     }
     
     
-    // Define o prazo da O.S
-    @PatchMapping("/backoffice/definir-prazo-pedido/{id}")
-    public ResponseEntity<String> definirPrazo(
-    		@PathVariable("id") UUID id,
-    		@RequestBody LocalDate prazo,
-    		@AuthenticationPrincipal Usuario usuario) {
-    	
-    	try {
-    		pedidoService.definirPrazo(id, prazo, usuario);
-    		return ResponseEntity.ok("Prazo da O.S definido");
-    		
-    	} catch (RuntimeException e) {
-    		return ResponseEntity.badRequest().body(e.getMessage());
-    	}
-    }
-    
     // Atribui o técino ao pedido
     @PatchMapping("/admin/atribuir-tecnico/{id}")
     public ResponseEntity<String> atribuirTecnico(@PathVariable("id") UUID id,
-    		@RequestBody String idTecnico, @AuthenticationPrincipal Usuario usuario) {
+    		@RequestBody String cpfTecnico, @AuthenticationPrincipal Usuario usuario) {
     	try {
-    		pedidoService.atribuirTecnico(id, idTecnico, usuario);
+    		pedidoService.atribuirTecnico(id, cpfTecnico, usuario);
     		return ResponseEntity.ok("Tecnico atribuído ao pedido");
     	} catch (RuntimeException e) {
     		return ResponseEntity.badRequest().body(e.getMessage());
@@ -146,7 +129,7 @@ public class PedidoController {
     
     
     // Retorna as O.Ss do usuário
-    @GetMapping("/listar-pedidos-usuario")
+    @GetMapping("/user/listar-pedidos-usuario")
 	public List<Pedido> listarManutencoesUsuario (@AuthenticationPrincipal Usuario usuarioLogado) {
 		return pedidoService.listarManutencoesUsuario(usuarioLogado);
 	}

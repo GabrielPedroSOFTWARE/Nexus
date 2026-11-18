@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,8 +11,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.model.AtualizacaoUsuarioDTO;
+import com.example.demo.model.HistoricoUsuario;
 import com.example.demo.model.PerfilUsuario;
 import com.example.demo.model.Usuario;
+import com.example.demo.repository.HistoricoUsuarioRepository;
 import com.example.demo.repository.UsuarioRepository;
 
 @Service
@@ -20,6 +24,9 @@ public class UsuarioService {
 	UsuarioRepository usuarioRepository;
 	@Autowired
     private PasswordEncoder encriptador;
+	@Autowired
+	private HistoricoUsuarioRepository historicoUsuarioRepository;
+	private DateTimeFormatter formatadorDataHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
 	
 	// Realiza a solicitação de cadastro do usuário
@@ -70,13 +77,15 @@ public class UsuarioService {
         
         for (AtualizacaoUsuarioDTO dto : alteracoes) {
             
-            Usuario usuario = usuarioRepository.findById(dto.getId())
-                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + dto.getId()));
+            Usuario usuario = usuarioRepository.findById(dto.getCpf())
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + dto.getCpf()));
             
             if (usuario.getPerfil() != dto.getPerfil() || usuario.isEhAdmin() != dto.isEhAdmin() 
             		|| !usuario.getStatus().endsWith(dto.getStatus())) {
             	usuario.setVersaoToken(usuario.getVersaoToken() + 1);   
             }
+            
+            salvarHistoricoAlteracoesUsuario(usuario, dto);
             
             usuario.setPerfil(dto.getPerfil());
             usuario.setEhAdmin(dto.isEhAdmin());
@@ -85,6 +94,33 @@ public class UsuarioService {
             usuarioRepository.save(usuario);
         }
     }
+    
+    
+    // Salva em um histórico quais status foram alterados
+    private void salvarHistoricoAlteracoesUsuario(Usuario usuario, AtualizacaoUsuarioDTO dto) {
+    	
+    	List<String> mudancas = new ArrayList<>();
+
+        if (usuario.getPerfil() != dto.getPerfil()) 
+            mudancas.add("Perfil: " + usuario.getPerfil() + " -> " + dto.getPerfil());
+        
+        if (usuario.isEhAdmin() != dto.isEhAdmin()) 
+            mudancas.add("Admin: " + usuario.isEhAdmin() + " -> " + dto.isEhAdmin());
+        
+        if (!usuario.getStatus().equals(dto.getStatus())) 
+            mudancas.add("Status: " + usuario.getStatus() + " -> " + dto.getStatus());
+
+        if (mudancas.isEmpty()) return;
+
+        HistoricoUsuario historico = new HistoricoUsuario();
+        historico.setCpfUsuario(usuario.getCpf());
+        
+        historico.setDescricaoAlteracao(String.join("\n", mudancas)); 
+        historico.setDataHoraAlteracao(LocalDateTime.now());
+        
+        historicoUsuarioRepository.save(historico);
+    }
+    
     
     // Retorna os usuários logados, menos o admin
     public List<Usuario> retornarUsuarios(Usuario usuarioLogado) {

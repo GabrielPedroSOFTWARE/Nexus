@@ -50,14 +50,14 @@ public class AutenticacaoController {
     
     
     // Mostra os usuários pendentes
-    @GetMapping("/admin/usuarios-pendentes")
+    @GetMapping("/adm/usuarios-pendentes")
     public List<Usuario> verificarPendentes() {
         return usuarioService.verificarPendentes();
     }
     
     
     // Aceita a solicitação de cadastro
-    @PutMapping("/admin/aceitar-sollicitacao/{id}")
+    @PutMapping("/adm/aceitar-sollicitacao/{id}")
     public ResponseEntity<String> atualizarStatusUsuario(
             @PathVariable("id") String id,
             @RequestBody PerfilUsuario perfilDefinido) {
@@ -67,7 +67,7 @@ public class AutenticacaoController {
     
     
     // Nega a solicitação de cadastro do usuário
-    @DeleteMapping("/admin/negar-solicitacao-usuario/{id}")
+    @DeleteMapping("/adm/negar-solicitacao-usuario/{id}")
     public ResponseEntity<String> negarSolicitacaoUsuario(@PathVariable("id") String id) {
     	usuarioService.negarSolicitacaoUsuario(id);
     	return ResponseEntity.ok("Solicitação negada");
@@ -75,7 +75,7 @@ public class AutenticacaoController {
     
     
     // Recebe uma lista com as alterações feitas na tabela
-    @PutMapping("/admin/salvar-alteracoes-usuarios")
+    @PutMapping("/adm/salvar-alteracoes-usuarios")
     public ResponseEntity<String> salvarAlteracoesUsuarios(
             @RequestBody List<AtualizacaoUsuarioDTO> alteracoes) {
         usuarioService.salvarAlteracoesEmLote(alteracoes);
@@ -84,7 +84,7 @@ public class AutenticacaoController {
     
     
     // Retorna todos os usuários cadastrados, com excessão do admin atual
-    @GetMapping("/admin/retornar-todos-menos-atual")
+    @GetMapping("/adm/retornar-todos-menos-atual")
     public List<Usuario> retornarUsuarios(@AuthenticationPrincipal Usuario usuarioLogado) {
     	return usuarioService.retornarUsuarios(usuarioLogado);
     }

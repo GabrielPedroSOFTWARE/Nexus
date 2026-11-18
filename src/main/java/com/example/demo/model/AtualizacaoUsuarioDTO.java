@@ -5,12 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class AtualizacaoUsuarioDTO {
-	private String id;
+	private String cpf;
     private PerfilUsuario perfil;
     private boolean ehAdmin;
     private String status;
