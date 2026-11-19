@@ -109,7 +109,7 @@ public class PedidoController {
     
     
     // Atribui o técino ao pedido
-    @PatchMapping("/admin/atribuir-tecnico/{id}")
+    @PatchMapping("/adm/atribuir-tecnico/{id}")
     public ResponseEntity<String> atribuirTecnico(@PathVariable("id") UUID id,
     		@RequestBody String cpfTecnico, @AuthenticationPrincipal Usuario usuario) {
     	try {
@@ -145,7 +145,7 @@ public class PedidoController {
     
     // Retorna as O.Ss por frequência
     @GetMapping("/backoffice/listar-pedidos-frequencia")
-    public List<Pedido> listarManutencoesPorSequencia(@RequestBody int frequencia) {
+    public List<Pedido> listarManutencoesPorFrequencia(@RequestParam("frequencia") int frequencia) {
     	return pedidoService.listarManutencoesPorFrequencia(frequencia);
     }
     

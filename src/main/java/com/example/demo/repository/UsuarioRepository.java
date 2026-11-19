@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,7 +10,8 @@ import com.example.demo.model.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 	List<Usuario> findByStatus(String status);
-	// Procura o usuário na base de dados pelo login
-    UserDetails findByCpf(String cpf); 
+    UserDetails findByCpf(String cpf);
     List<Usuario> findByCpfNot(String cpf);
+    Optional<Usuario> findByTokenRecuperacao(String tokenRecuperacao);
+    Optional<Usuario> findByCodigoEspera(String codigoEspera);
 }

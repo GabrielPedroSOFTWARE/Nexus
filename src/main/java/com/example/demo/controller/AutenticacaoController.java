@@ -1,22 +1,19 @@
 package com.example.demo.controller;
 
-import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.model.AtualizacaoUsuarioDTO;
 import com.example.demo.model.DadosLogin;
-import com.example.demo.model.PerfilUsuario;
+import com.example.demo.model.EsqueciSenhaDTO;
+import com.example.demo.model.RedefinirSenhaDTO;
 import com.example.demo.model.Usuario;
 import com.example.demo.service.AutenticacaoService;
 import com.example.demo.service.UsuarioService;
@@ -49,43 +46,47 @@ public class AutenticacaoController {
     }
     
     
-    // Mostra os usuários pendentes
-    @GetMapping("/adm/usuarios-pendentes")
-    public List<Usuario> verificarPendentes() {
-        return usuarioService.verificarPendentes();
+    // Envia o e-mail com o link de recuperação
+    @PostMapping("/esqueci-senha")
+    public ResponseEntity<?> esqueciSenha(@RequestBody EsqueciSenhaDTO dados) {
+        try {
+            String codigoEspera = usuarioService.solicitarRecuperacaoSenha(dados.cpf());
+            return ResponseEntity.ok(Map.of("codigoEspera", codigoEspera));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
-    
-    
-    // Aceita a solicitação de cadastro
-    @PutMapping("/adm/aceitar-sollicitacao/{id}")
-    public ResponseEntity<String> atualizarStatusUsuario(
-            @PathVariable("id") String id,
-            @RequestBody PerfilUsuario perfilDefinido) {
-    	usuarioService.atualizarStatusUsuario(id, perfilDefinido);        
-        return ResponseEntity.ok("Situação do usuário atualizada com sucesso para: Ativo");
+
+    // Rotina que ocorre quando a pessoa clica no link
+    @GetMapping(value = "/confirmar-recuperacao", produces = "text/html; charset=UTF-8")
+    public ResponseEntity<String> confirmarLink(@RequestParam("token") String token) {
+        try {
+            usuarioService.confirmarCliqueNoLink(token);
+            return ResponseEntity.ok(
+                "<h2>E-mail confirmado!</h2>"
+                + "<p>Você já pode voltar para a tela do sistema e criar sua nova senha.</p>"
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("<h2>Link inválido ou expirado.</h2>");
+        }
     }
-    
-    
-    // Nega a solicitação de cadastro do usuário
-    @DeleteMapping("/adm/negar-solicitacao-usuario/{id}")
-    public ResponseEntity<String> negarSolicitacaoUsuario(@PathVariable("id") String id) {
-    	usuarioService.negarSolicitacaoUsuario(id);
-    	return ResponseEntity.ok("Solicitação negada");
+
+    // Verifica se o usuário clicou no link
+    @GetMapping("/status-recuperacao")
+    public ResponseEntity<?> statusRecuperacao(@RequestParam("codigo") String codigo) {
+        boolean confirmado = usuarioService.verificarSeConfirmou(codigo);
+        return ResponseEntity.ok(Map.of("confirmado", confirmado));
     }
-    
-    
-    // Recebe uma lista com as alterações feitas na tabela
-    @PutMapping("/adm/salvar-alteracoes-usuarios")
-    public ResponseEntity<String> salvarAlteracoesUsuarios(
-            @RequestBody List<AtualizacaoUsuarioDTO> alteracoes) {
-        usuarioService.salvarAlteracoesEmLote(alteracoes);
-        return ResponseEntity.ok("Todos os usuários foram atualizados com sucesso!");
-    }
-    
-    
-    // Retorna todos os usuários cadastrados, com excessão do admin atual
-    @GetMapping("/adm/retornar-todos-menos-atual")
-    public List<Usuario> retornarUsuarios(@AuthenticationPrincipal Usuario usuarioLogado) {
-    	return usuarioService.retornarUsuarios(usuarioLogado);
+
+    // Redefine a senha enviando o código de espera e a nova senha
+    @PostMapping("/redefinir-senha")
+    public ResponseEntity<String> redefinirSenha(@RequestBody RedefinirSenhaDTO dados) {
+        try {
+            usuarioService.redefinirSenha(dados.codigoEspera(), dados.novaSenha());
+            return ResponseEntity.ok("Senha alterada com sucesso!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }

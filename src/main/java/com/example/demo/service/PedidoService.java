@@ -142,6 +142,7 @@ public class PedidoService {
     	Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
         
+    	cpfTecnico = cpfTecnico.replaceAll("\\D", "");
         Usuario novoTecnico = usuarioRepository.findById(cpfTecnico)
                 .orElseThrow(() -> new RuntimeException("Novo técnico não encontrado"));
 

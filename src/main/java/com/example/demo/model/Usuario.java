@@ -46,6 +46,11 @@ public class Usuario implements UserDetails {
     private String status = "Aguardando análise";
     private boolean ehAdmin = false;
     private Integer versaoToken = 1;
+    
+    private String tokenRecuperacao;
+    private String codigoEspera;
+    private boolean recuperacaoConfirmada = false;
+    private LocalDateTime validadeTokenRecuperacao;
 
  // Define a autoridade do usuário baseado no perfil
     @Override

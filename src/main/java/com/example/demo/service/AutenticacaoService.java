@@ -27,6 +27,27 @@ public class AutenticacaoService implements UserDetailsService {
     private UsuarioRepository usuarioRepository;
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private CriptografiaCpfService criptografiaService;
+    
+    
+    // Efetua o login
+    public ResponseEntity<?> efetuarLogin(DadosLogin dados) { 
+        
+    	String cpfCriptografado = criptografiaService.criptografar(dados.cpf());
+        ResponseEntity<?> erroDeStatus = verificarStatusUsuario(cpfCriptografado);
+        
+        if (erroDeStatus != null) return erroDeStatus;
+        
+        Usuario logado = (Usuario) manager.authenticate(
+                new UsernamePasswordAuthenticationToken(dados.cpf(), dados.senha())
+            ).getPrincipal();
+            return ResponseEntity.ok(Map.of(
+                "token", tokenService.gerarToken(logado),
+                "perfil", logado.getPerfil().name(),
+                "admin", String.valueOf(logado.isEhAdmin())
+            ));
+    }
     
     
     // Verifica se o login está inativo ou necessita de aprovação
@@ -44,24 +65,6 @@ public class AutenticacaoService implements UserDetailsService {
             
             default -> null;
         };
-    }
-    
-    
-    // Efetua o login
-    public ResponseEntity<?> efetuarLogin(DadosLogin dados) { 
-        
-        ResponseEntity<?> erroDeStatus = verificarStatusUsuario(dados.cpf());
-        
-        if (erroDeStatus != null) return erroDeStatus;
-        
-        Usuario logado = (Usuario) manager.authenticate(
-                new UsernamePasswordAuthenticationToken(dados.cpf(), dados.senha())
-            ).getPrincipal();
-            return ResponseEntity.ok(Map.of(
-                "token", tokenService.gerarToken(logado),
-                "perfil", logado.getPerfil().name(),
-                "admin", String.valueOf(logado.isEhAdmin())
-            ));
     }
     
     

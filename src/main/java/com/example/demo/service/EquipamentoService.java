@@ -127,6 +127,7 @@ public class EquipamentoService {
 	
 	// Retorna os equipamentos que podem receber uma O.S
 	public List<Equipamento> retornarEquipamentosParaPedidos(String cpfUsuario) {
+		cpfUsuario = cpfUsuario.replaceAll("\\D", "");
         return equipamentoRepository.buscarEquipamentosComStatusFinalizadoPorUsuario(cpfUsuario);
     }
 	

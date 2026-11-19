@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,13 +27,22 @@ public class UsuarioService {
 	@Autowired
 	private HistoricoUsuarioRepository historicoUsuarioRepository;
 	private DateTimeFormatter formatadorDataHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-
+	@Autowired
+    private EmailService emailService;
+	@Autowired
+	private CriptografiaCpfService criptografiaService;
 	
 	// Realiza a solicitação de cadastro do usuário
 	public void cadastrarUsuario(Usuario novoUsuario) {
+		
+		String cpfCriptografado = criptografiaService.criptografar(novoUsuario.getCpf());
+		novoUsuario.setCpf(cpfCriptografado);
+		
         String senhaSegura = encriptador.encode(novoUsuario.getSenha());
         novoUsuario.setSenha(senhaSegura);
+        
         novoUsuario.setDataHoraCadastro(LocalDateTime.now());
+        
         usuarioRepository.save(novoUsuario);
     }
     
@@ -45,11 +54,9 @@ public class UsuarioService {
     
     
     // Atualiza o status do usuário
-    public void atualizarStatusUsuario(String id, PerfilUsuario perfilDefinido) {
+    public void atualizarStatusUsuario(String cpf, PerfilUsuario perfilDefinido) {
         
-        Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
-        
-        Usuario usuario = usuarioOptional.get();
+        Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
         
         usuario.setStatus("Ativo");
         usuario.setPerfil(perfilDefinido);
@@ -59,16 +66,15 @@ public class UsuarioService {
     
     
     // Nega a solicitação do usuário
-    public void negarSolicitacaoUsuario(String id) {
+    public void negarSolicitacaoUsuario(String cpf) {
     	
-    	Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    	Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
         
         if(!usuario.getStatus().equals("Aguardando análise")) {
         	throw new RuntimeException("Usuário já está cadastrado");
         }
         
-    	usuarioRepository.deleteById(id);
+    	usuarioRepository.deleteById(cpf);
     }
     
     
@@ -76,7 +82,7 @@ public class UsuarioService {
     public void salvarAlteracoesEmLote(List<AtualizacaoUsuarioDTO> alteracoes) {
         
         for (AtualizacaoUsuarioDTO dto : alteracoes) {
-            
+            dto.setCpf(dto.getCpf().replaceAll("\\D", ""));
             Usuario usuario = usuarioRepository.findById(dto.getCpf())
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + dto.getCpf()));
             
@@ -125,5 +131,79 @@ public class UsuarioService {
     // Retorna os usuários logados, menos o admin
     public List<Usuario> retornarUsuarios(Usuario usuarioLogado) {
     	return usuarioRepository.findByCpfNot(usuarioLogado.getCpf());
+    }
+    
+    
+    // Recebe o CPF, gera os dois códigos (o do e-mail e o "bipe" da tela) e envia o link
+    public String solicitarRecuperacaoSenha(String cpf) {
+    	String cpfCriptografado = criptografiaService.criptografar(cpf);
+        Usuario usuario = usuarioRepository.findById(cpfCriptografado)
+                .orElseThrow(() -> new RuntimeException("CPF não encontrado no sistema."));
+        
+        if(usuario.getStatus().equals("Inativo")) {
+        	throw new RuntimeException("Essa conta não está ativa");
+        }
+        
+        if(usuario.getStatus().equals("Aguardando análise")) {
+        	throw new RuntimeException("Essa conta ainda não foi ativada");
+        }
+        String tokenEmail = UUID.randomUUID().toString();
+        String codigoEspera = UUID.randomUUID().toString();
+
+        usuario.setTokenRecuperacao(tokenEmail);
+        usuario.setCodigoEspera(codigoEspera);
+        usuario.setRecuperacaoConfirmada(false);
+        usuario.setValidadeTokenRecuperacao(LocalDateTime.now().plusMinutes(15));
+        usuarioRepository.save(usuario);
+
+        String link = "http://localhost:8080/confirmar-recuperacao?token=" + tokenEmail;
+        emailService.enviarEmailRecuperacao(usuario.getEmail(), link);
+
+        return codigoEspera;
+    }
+
+    // Quando o usuário clica no link do e-mail, este método muda o atributo da recuperação para "true"
+    public void confirmarCliqueNoLink(String tokenEmail) {
+        Usuario usuario = usuarioRepository.findByTokenRecuperacao(tokenEmail)
+                .orElseThrow(() -> new RuntimeException("Link inválido."));
+
+        if (usuario.getValidadeTokenRecuperacao() == null ||
+            LocalDateTime.now().isAfter(usuario.getValidadeTokenRecuperacao())) {
+            throw new RuntimeException("Link expirado.");
+        }
+
+        usuario.setRecuperacaoConfirmada(true);
+        usuarioRepository.save(usuario);
+    }
+
+    // A tela em espera chama isso de tempos em tempos para saber se já pode destrancar
+    public boolean verificarSeConfirmou(String codigoEspera) {
+        return usuarioRepository.findByCodigoEspera(codigoEspera)
+                .map(u -> u.isRecuperacaoConfirmada()
+                        && u.getValidadeTokenRecuperacao() != null
+                        && LocalDateTime.now().isBefore(u.getValidadeTokenRecuperacao()))
+                .orElse(false);
+    }
+
+    // Depois que a tela destrancou, salva a nova senha criptografada e apaga os códigos
+    public void redefinirSenha(String codigoEspera, String novaSenha) {
+        Usuario usuario = usuarioRepository.findByCodigoEspera(codigoEspera)
+                .orElseThrow(() -> new RuntimeException("Solicitação inválida."));
+
+        if (!usuario.isRecuperacaoConfirmada() ||
+            usuario.getValidadeTokenRecuperacao() == null ||
+            LocalDateTime.now().isAfter(usuario.getValidadeTokenRecuperacao())) {
+            throw new RuntimeException("Confirmação pendente ou expirada.");
+        }
+
+        usuario.setSenha(encriptador.encode(novaSenha));
+
+        // Limpa tudo para o link e o código não poderem ser usados uma segunda vez
+        usuario.setTokenRecuperacao(null);
+        usuario.setCodigoEspera(null);
+        usuario.setRecuperacaoConfirmada(false);
+        usuario.setValidadeTokenRecuperacao(null);
+
+        usuarioRepository.save(usuario);
     }
 }

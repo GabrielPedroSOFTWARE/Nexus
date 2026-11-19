@@ -35,6 +35,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req -> {
                     req.requestMatchers("/login").permitAll();
                     req.requestMatchers("/cadastrar").permitAll();
+                    req.requestMatchers("/esqueci-senha").permitAll();
+                    req.requestMatchers("/confirmar-recuperacao").permitAll();
+                    req.requestMatchers("/status-recuperacao").permitAll();
+                    req.requestMatchers("/redefinir-senha").permitAll();
                     req.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN");
                     req.requestMatchers("/backoffice/**").hasAnyRole("ADMIN", "MANAGER", "SUPPORT");
                     req.requestMatchers("/adm/**").hasRole("ADMIN");

@@ -70,9 +70,9 @@ public class EquipamentoController {
     }
     
     // Retorna os equipamentos que podem receber uma O.S
-    @GetMapping("/user/equipamentos-para-pedidos/{cpfUsuario}")
+    @GetMapping("/user/equipamentos-para-pedidos")
     public List<Equipamento> retornarEquipamentosParaPedidos(
-    	@PathVariable("cpfUsuario") String cpfUsuario) {
+    	@RequestBody String cpfUsuario) {
         return equipamentoService.retornarEquipamentosParaPedidos(cpfUsuario);
     }
     
