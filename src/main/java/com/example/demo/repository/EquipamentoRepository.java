@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.example.demo.model.Equipamento;
 
@@ -13,7 +14,7 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Long> 
 	
 	@Query("SELECT e FROM Equipamento e WHERE e.cpfUsuario = :cpfUsuario AND e.id IN "
 	         + "(SELECT p.idPC FROM Pedido p WHERE p.status NOT IN (5, 6))")
-    List<Equipamento> buscarEquipamentosComStatusFinalizadoPorUsuario(String cpfUsuario);
+    List<Equipamento> buscarEquipamentosComStatusFinalizadoPorUsuario(@Param("cpfUsuario") String cpfUsuario);
 	
 	
 	@Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END " +
@@ -24,7 +25,9 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Long> 
 		       "    SELECT 1 FROM Pedido p " +
 		       "    WHERE p.idPC = e.id AND p.status NOT IN (5, 6)" +
 		       ")")
-	boolean verificarPossivelExclusaoEquipamento(Long idEquipamento, String cpfUsuario);
+	boolean verificarPossivelExclusaoEquipamento(
+			@Param("idEquipamento") Long idEquipamento,
+			@Param("cpfUsuario") String cpfUsuario);
 	
 	Optional<Equipamento> findByCpfUsuarioAndFabricanteAndModeloAndProcessador(
 	        String cpfUsuario, 

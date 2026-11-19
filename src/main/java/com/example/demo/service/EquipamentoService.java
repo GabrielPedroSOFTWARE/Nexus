@@ -112,8 +112,8 @@ public class EquipamentoService {
 	
 	// Remove um equipamento do banco de dados
 	public void removerEquipamento(Long idEquipamento, Usuario usuarioLogado) {
-		
     	String cpfUsuario = usuarioLogado.getCpf();
+    	cpfUsuario = cpfUsuario.replaceAll("\\D", "");
     	boolean fazParte = equipamentoRepository
     			.verificarPossivelExclusaoEquipamento(idEquipamento, cpfUsuario);
     	
