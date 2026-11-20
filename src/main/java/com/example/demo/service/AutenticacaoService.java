@@ -40,7 +40,7 @@ public class AutenticacaoService implements UserDetailsService {
         if (erroDeStatus != null) return erroDeStatus;
         
         Usuario logado = (Usuario) manager.authenticate(
-                new UsernamePasswordAuthenticationToken(dados.cpf(), dados.senha())
+                new UsernamePasswordAuthenticationToken(cpfCriptografado, dados.senha())
             ).getPrincipal();
             return ResponseEntity.ok(Map.of(
                 "token", tokenService.gerarToken(logado),
