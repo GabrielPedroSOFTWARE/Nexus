@@ -1,19 +1,18 @@
 package com.example.demo.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.AtualizacaoUsuarioDTO;
-import com.example.demo.model.PerfilUsuario;
 import com.example.demo.model.Usuario;
 import com.example.demo.service.UsuarioService;
 
@@ -32,11 +31,10 @@ public class UsuarioController {
     
     
     // Aceita a solicitação de cadastro
-    @PutMapping("/adm/aceitar-sollicitacao")
+    @PutMapping("/adm/aceitar-solicitacao")
     public ResponseEntity<String> atualizarStatusUsuario(
-            @RequestBody String cpf,
-            @RequestBody PerfilUsuario perfilDefinido) {
-    	usuarioService.atualizarStatusUsuario(cpf, perfilDefinido);        
+            @RequestBody Map<String,String> dados) {
+    	usuarioService.atualizarStatusUsuario(dados);        
         return ResponseEntity.ok("Situação do usuário atualizada com sucesso para: Ativo");
     }
     

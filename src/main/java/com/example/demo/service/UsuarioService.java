@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +55,13 @@ public class UsuarioService {
     
     
     // Atualiza o status do usuário
-    public void atualizarStatusUsuario(String cpf, PerfilUsuario perfilDefinido) {
+    public void atualizarStatusUsuario(Map<String, String> dados) {
         
+    	String cpf = dados.get("cpf").replaceAll("\\D", "");
+    	cpf = criptografiaService.criptografar(cpf);
+    	
+    	PerfilUsuario perfilDefinido = PerfilUsuario.valueOf(dados.get("perfil"));
+    	
         Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
         
         usuario.setStatus("Ativo");
@@ -67,6 +73,8 @@ public class UsuarioService {
     
     // Nega a solicitação do usuário
     public void negarSolicitacaoUsuario(String cpf) {
+    	
+    	cpf = criptografiaService.criptografar(cpf);
     	
     	Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
         
