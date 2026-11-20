@@ -54,7 +54,11 @@ public class PedidoService {
         novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
         
         pedidoRepository.save(novoPedido);
-		
+        
+        notificacaoService.enviarNotificacaoParaTecnicos(novoPedido);
+        
+        String alteracao = "O.S criada";
+        historicoPedidoService.registrarAcao(novoPedido, usuario.getCpf(), alteracao);
 	}
 
 	

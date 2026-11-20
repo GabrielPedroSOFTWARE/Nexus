@@ -50,8 +50,9 @@ public class UsuarioController {
     // Recebe uma lista com as alterações feitas na tabela
     @PutMapping("/adm/salvar-alteracoes-usuarios")
     public ResponseEntity<String> salvarAlteracoesUsuarios(
-            @RequestBody List<AtualizacaoUsuarioDTO> alteracoes) {
-        usuarioService.salvarAlteracoesEmLote(alteracoes);
+            @RequestBody List<AtualizacaoUsuarioDTO> alteracoes,
+            @AuthenticationPrincipal Usuario usuario) {
+        usuarioService.salvarAlteracoesEmLote(alteracoes, usuario);
         return ResponseEntity.ok("Todos os usuários foram atualizados com sucesso!");
     }
     

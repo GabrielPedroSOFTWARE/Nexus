@@ -87,25 +87,38 @@ public class UsuarioService {
     
     
     // Atualiza múltiplos usuários de uma só vez
-    public void salvarAlteracoesEmLote(List<AtualizacaoUsuarioDTO> alteracoes) {
+    public void salvarAlteracoesEmLote(List<AtualizacaoUsuarioDTO> alteracoes, Usuario usuarioLogado) {
         
         for (AtualizacaoUsuarioDTO dto : alteracoes) {
             dto.setCpf(dto.getCpf().replaceAll("\\D", ""));
-            Usuario usuario = usuarioRepository.findById(dto.getCpf())
+            
+            Usuario usuarioSelecionado = usuarioRepository.findById(dto.getCpf())
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + dto.getCpf()));
             
-            if (usuario.getPerfil() != dto.getPerfil() || usuario.isEhAdmin() != dto.isEhAdmin() 
-            		|| !usuario.getStatus().endsWith(dto.getStatus())) {
-            	usuario.setVersaoToken(usuario.getVersaoToken() + 1);   
+            if(usuarioSelecionado.getPerfil().equals(PerfilUsuario.USER) && dto.getPerfil().equals(PerfilUsuario.USER) 
+            		&& dto.isEhAdmin()) {
+            	throw new RuntimeException("Um Usuário não pode ser Admin");
             }
             
-            salvarHistoricoAlteracoesUsuario(usuario, dto);
+            if(usuarioLogado.getCpf().equals(usuarioSelecionado.getCpf())) {
+            	throw new RuntimeException("Um ADM não pode alterar seu próprio status");
+            }
             
-            usuario.setPerfil(dto.getPerfil());
-            usuario.setEhAdmin(dto.isEhAdmin());
-            usuario.setStatus(dto.getStatus());
+            if (usuarioSelecionado.getPerfil() != dto.getPerfil() || usuarioSelecionado.isEhAdmin() != dto.isEhAdmin() 
+            		|| !usuarioSelecionado.getStatus().endsWith(dto.getStatus())) {
+            	if(usuarioSelecionado.getStatus().equals("Inativo")) {
+            		throw new RuntimeException("Um Usuário Inativo não pode ser alterado");
+            	}
+            	usuarioSelecionado.setVersaoToken(usuarioSelecionado.getVersaoToken() + 1);   
+            }
             
-            usuarioRepository.save(usuario);
+            salvarHistoricoAlteracoesUsuario(usuarioSelecionado, dto);
+            
+            usuarioSelecionado.setPerfil(dto.getPerfil());
+            usuarioSelecionado.setEhAdmin(dto.isEhAdmin());
+            usuarioSelecionado.setStatus(dto.getStatus());
+            
+            usuarioRepository.save(usuarioSelecionado);
         }
     }
     
