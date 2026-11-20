@@ -36,7 +36,18 @@ public class UsuarioService {
 	// Realiza a solicitação de cadastro do usuário
 	public void cadastrarUsuario(Usuario novoUsuario) {
 		
+		
 		String cpfCriptografado = criptografiaService.criptografar(novoUsuario.getCpf());
+		
+		Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpfCriptografado);
+		
+		if(usuario != null) {
+			if(usuario.getPerfil() == PerfilUsuario.PENDENT) {
+				throw new RuntimeException("Solicitação já enviada, aguarde a aprovação");
+			}
+			throw new RuntimeException("Este CPF já está cadastrado");
+		}
+		
 		novoUsuario.setCpf(cpfCriptografado);
 		
         String senhaSegura = encriptador.encode(novoUsuario.getSenha());
@@ -174,7 +185,7 @@ public class UsuarioService {
         usuario.setTokenRecuperacao(tokenEmail);
         usuario.setCodigoEspera(codigoEspera);
         usuario.setRecuperacaoConfirmada(false);
-        usuario.setValidadeTokenRecuperacao(LocalDateTime.now().plusMinutes(15));
+        usuario.setValidadeTokenRecuperacao(LocalDateTime.now().plusMinutes(30));
         usuarioRepository.save(usuario);
 
         String link = "http://localhost:8080/confirmar-recuperacao?token=" + tokenEmail;

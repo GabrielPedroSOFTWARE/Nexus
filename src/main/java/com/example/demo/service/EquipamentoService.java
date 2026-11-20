@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.model.Equipamento;
+import com.example.demo.model.PerfilUsuario;
 import com.example.demo.model.Usuario;
 import com.example.demo.repository.EquipamentoRepository;
 import com.example.demo.repository.UsuarioRepository;
@@ -35,13 +36,14 @@ public class EquipamentoService {
 	    HardwareAbstractionLayer hardware = info.getHardware();
 
 	    Equipamento equipamento = new Equipamento();
-	    
+
+	    equipamento.setNumeroSerie(lerNumeroSerie(hardware));
 	    equipamento.setCpfUsuario(usuarioLogado.getCpf());
 	    equipamento.setSistemaOperacional(info.getOperatingSystem().toString());
 	    equipamento.setFabricante(hardware.getComputerSystem().getManufacturer());
 	    equipamento.setModelo(hardware.getComputerSystem().getModel());
 	    equipamento.setProcessador(hardware.getProcessor().getProcessorIdentifier().getName());
-	    equipamento.setRam((int) (hardware.getMemory().getTotal() / 1073741824L)); // 1024^3
+	    equipamento.setRam((int) (hardware.getMemory().getTotal() / 1073741824L));
 	    equipamento.setPlacasDeVideo(lerPlacasDeVideo(hardware.getGraphicsCards()));
 	    equipamento.setDiscos(lerDiscos(hardware.getDiskStores()));
 	    
@@ -72,14 +74,47 @@ public class EquipamentoService {
 	}
 	
 	
+	// Lê o número de série do equipamento
+	private String lerNumeroSerie(HardwareAbstractionLayer hardware) {
+	    String serial = hardware.getComputerSystem().getSerialNumber();
+
+	    // Caso seja vago, procura o serial da placa mãe
+	    if (ehSerialInvalido(serial)) {
+	        serial = hardware.getComputerSystem().getBaseboard().getSerialNumber();
+	    }
+
+	    // Se mesmo assim for vago, procura o serial do hardware
+	    if (ehSerialInvalido(serial)) {
+	        serial = hardware.getComputerSystem().getHardwareUUID();
+	    }
+
+	    return serial;
+	}
+
+	
+	// Verifica se o número de série é válido
+	private boolean ehSerialInvalido(String texto) {
+	    if (texto == null || texto.isBlank()) return true;
+	    String minusculo = texto.toLowerCase();
+	    return minusculo.equals("unknown")
+	            || minusculo.equals("none")
+	            || minusculo.contains("default")
+	            || minusculo.contains("o.e.m.");
+	}
+	
+	
 	// Adiciona um novo equipamento ao banco de dados
 	public void adicionarNovoEquipamento(Equipamento equipamentoEnviado, Usuario usuarioLogado) {
 	    
-	    String cpfUsuario = usuarioLogado.getCpf();
+	    Equipamento equipamento = equipamentoRepository.findByNumeroSerie(equipamentoEnviado.getNumeroSerie());
+	    
+	    if(equipamento != null && !equipamento.getCpfUsuario().equals(usuarioLogado.getCpf())) {
+	    	throw new RuntimeException("Esse computador já está cadastrado no nome de outro usuário");
+	    }
 	    
 	    Optional<Equipamento> pcExistente = equipamentoRepository
 	            .findByCpfUsuarioAndFabricanteAndModeloAndProcessador(
-	                    cpfUsuario, 
+	            		usuarioLogado.getCpf(), 
 	                    equipamentoEnviado.getFabricante(),
 	                    equipamentoEnviado.getModelo(), 
 	                    equipamentoEnviado.getProcessador()
@@ -96,7 +131,7 @@ public class EquipamentoService {
 	        equipamentoRepository.save(pcParaAtualizar);
 	        
 	    } else {
-	        equipamentoEnviado.setCpfUsuario(cpfUsuario);
+	        equipamentoEnviado.setCpfUsuario(usuarioLogado.getCpf());
 	        
 	        equipamentoRepository.save(equipamentoEnviado);
 	    }
@@ -140,7 +175,7 @@ public class EquipamentoService {
 	// Retorna os dados das estatísticas
 	public Map<String, Long> retornarDadosEstatisticas() {
     	Map<String, Long> dados = new HashMap<String, Long>();
-    	dados.put("totalUsuarios", usuarioRepository.count());
+    	dados.put("totalUsuarios", usuarioRepository.countByPerfilNot(PerfilUsuario.PENDENT));
     	dados.put("totalMaquinas", equipamentoRepository.count());
     	return dados;
     }

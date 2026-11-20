@@ -41,8 +41,13 @@ public class AutenticacaoController {
     // Cadastro temporário
     @PostMapping("/cadastrar")
     public ResponseEntity<String> cadastrarUsuario(@RequestBody Usuario novoUsuario) {
-    	usuarioService.cadastrarUsuario(novoUsuario);
-        return ResponseEntity.ok("Solicitação enviada com sucesso!");
+    	try {
+    		usuarioService.cadastrarUsuario(novoUsuario);
+            return ResponseEntity.ok("Solicitação enviada com sucesso!");
+    	} catch(RuntimeException e) {
+    		return ResponseEntity.badRequest().body(e.getMessage());
+    	}
+    	
     }
     
     

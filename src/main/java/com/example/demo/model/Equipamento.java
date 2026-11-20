@@ -29,6 +29,7 @@ public class Equipamento {
 	    allocationSize = 1
 	)
 	private Long id;
+	private String numeroSerie;
 	private String cpfUsuario;
 	private String fabricante;
 	private String modelo;

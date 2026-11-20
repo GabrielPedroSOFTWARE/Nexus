@@ -29,6 +29,9 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Long> 
 			@Param("idEquipamento") Long idEquipamento,
 			@Param("cpfUsuario") String cpfUsuario);
 	
+	
+	Equipamento findByNumeroSerie(String numeroSerie);
+	
 	Optional<Equipamento> findByCpfUsuarioAndFabricanteAndModeloAndProcessador(
 	        String cpfUsuario, 
 	        String fabricante, 

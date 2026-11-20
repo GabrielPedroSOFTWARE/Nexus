@@ -134,13 +134,22 @@ public class PedidoService {
     	if(List.of(5, 6).contains(statusAntigo)) {
     		throw new RuntimeException("A O.S já foi " + status.get(statusAntigo));
     	}
+    	
+    	if(pedido.getCpfTecnico() == null) {
+    		throw new RuntimeException("Defina primeiro um técnico"
+    				+ " antes de alterar o status da O.S");
+    	}
         
-        if(!usuario.isEhAdmin() && !usuario.getCpf().equals(pedido.getCpfTecnico())) {
+        if(pedido.getCpfTecnico() != null && !usuario.isEhAdmin()
+        		&& !usuario.getCpf().equals(pedido.getCpfTecnico())) {
         	throw new RuntimeException("Sem autorização para alterar o status da O.S");
         }
         
         
         int statusNovo = Integer.parseInt(dados.get("novoStatusId"));
+        if(statusNovo == 0) {
+        	throw new RuntimeException("Status só pode voltar para o início ao devolvê-lo à fila");
+        }
         pedido.setStatus(statusNovo);
         
         LocalDate novoPrazo = null;
@@ -205,6 +214,7 @@ public class PedidoService {
 		}
     	
     	pedido.setCpfTecnico(null);
+    	pedido.setStatus(0);
     	
     	String alteracao = "O.S de volta à fila\n"
     			+ "Justificativa: " + justificativa;
