@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.Pedido;
 import com.example.demo.model.Usuario;
+import com.example.demo.repository.EquipamentoRepository;
 import com.example.demo.repository.PedidoRepository;
 import com.example.demo.repository.UsuarioRepository;
 
@@ -29,6 +30,8 @@ public class PedidoService {
 	private HistoricoPedidoService historicoPedidoService;
 	@Autowired
 	private UsuarioRepository usuarioRepository;
+	@Autowired
+	private EquipamentoRepository equipamentoRepository;
 	
 	private List<String> status = List.of("Recebida", "Em diagnóstico",
 			"Em manutenção", "Aguardando peças", "Pronto para retirada",
@@ -41,6 +44,14 @@ public class PedidoService {
 	// Cria uma nova O.S
 	public void criarNovoPedido(Pedido novoPedido, MultipartFile arquivoFoto, Usuario usuario) 
 			throws IOException  {
+		
+		boolean fazParte = equipamentoRepository
+    			.verificarPossivelExclusaoEquipamento(novoPedido.getIdPC(), usuario.getCpf());
+		
+		if(!fazParte) {
+			throw new RuntimeException("Há uma O.S em aberto para esse equipamento");
+		}
+		
 		if (arquivoFoto != null && !arquivoFoto.isEmpty()) {
 			
             novoPedido.setFoto(arquivoFoto.getBytes());
@@ -72,6 +83,10 @@ public class PedidoService {
 			throw new RuntimeException("Você não tem permissão para alterar essa O.S");
 		}
 		
+		if(List.of(5, 6).contains(pedido.getStatus())) {
+			throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
+		}
+		
 		if (arquivoFoto != null && !arquivoFoto.isEmpty()) {
 			
             novoPedido.setFoto(arquivoFoto.getBytes());
@@ -96,6 +111,10 @@ public class PedidoService {
         	throw new RuntimeException("Sem autorização para cancelar a O.S");
         }
         
+        if(pedido.getStatus() == 6) {
+        	throw new RuntimeException("A O.S já foi cancelada");
+        }
+        
         pedido.setStatus(6);
         pedido.setJustificativaCancelamento(justificativa);
         
@@ -112,7 +131,7 @@ public class PedidoService {
     	
     	int statusAntigo = pedido.getStatus();
 
-    	if(statusAntigo == 5 || statusAntigo == 6) {
+    	if(List.of(5, 6).contains(statusAntigo)) {
     		throw new RuntimeException("A O.S já foi " + status.get(statusAntigo));
     	}
         
@@ -124,15 +143,23 @@ public class PedidoService {
         int statusNovo = Integer.parseInt(dados.get("novoStatusId"));
         pedido.setStatus(statusNovo);
         
+        LocalDate novoPrazo = null;
+        
         if(statusAntigo == 0 && statusNovo == 1) pedido.setObservacoesTecnico(dados.get("observacao"));
-        else if(statusAntigo < 2 && statusNovo == 2) pedido.setDataFinalManutencao(LocalDate.parse(dados.get("prazo"), formatadorDataHora));
-        else if(statusAntigo > 1 && statusNovo == 1) pedido.setDataFinalManutencao(LocalDate.parse(dados.get("prazo"), formatadorDataHora));
+        else if(statusAntigo < 2 && statusNovo == 2) {
+        	novoPrazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
+        	pedido.setDataFinalManutencao(novoPrazo);
+        }
+        else if(statusAntigo > 1 && statusNovo == 1) {
+        	novoPrazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
+        	pedido.setDataFinalManutencao(LocalDate.parse(dados.get("prazo"), formatadorDataHora));
+        }
         else if (statusNovo == 5) {
         	pedido.setObservacoesTecnico("observacao");
         	pedido.setDescricao(dados.get("descricao"));
         } else if(statusAntigo > statusNovo) pedido.setJustificativa("justificativa");
         
-        notificacaoService.enviarNotificacao(pedido.getCpfUsuario(), statusNovo);
+        notificacaoService.enviarNotificacao(pedido.getCpfUsuario(), statusNovo, novoPrazo);
         String alteracao = "Status: " +
         		status.get(statusAntigo) + " -> " + status.get(statusNovo);
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
@@ -145,6 +172,10 @@ public class PedidoService {
     public void atribuirTecnico(UUID id, String cpfTecnico, Usuario usuario) {
     	Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+    	
+    	if(List.of(5, 6).contains(pedido.getStatus())) {
+			throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
+		}
         
     	cpfTecnico = cpfTecnico.replaceAll("\\D", "");
         Usuario novoTecnico = usuarioRepository.findById(cpfTecnico)
@@ -164,6 +195,25 @@ public class PedidoService {
     }
     
     
+    // Devolve a O.S para a fila
+    public void devolverParaAFila(UUID id, Usuario usuario, String justificativa) {
+    	Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+    	
+    	if(List.of(5, 6).contains(pedido.getStatus())) {
+			throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
+		}
+    	
+    	pedido.setCpfTecnico(null);
+    	
+    	String alteracao = "O.S de volta à fila\n"
+    			+ "Justificativa: " + justificativa;
+    	
+    	historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
+    	
+    }
+    
+    
     // Definir/Alterar a justificativa de uma O.S
     public void definirJustificativa(UUID id, String justificativa, Usuario usuario) {
     	Pedido pedido = pedidoRepository.findById(id)
@@ -172,6 +222,10 @@ public class PedidoService {
     	if(!usuario.isEhAdmin() && !usuario.getCpf().equals(pedido.getCpfTecnico())) {
         	throw new RuntimeException("Sem autorização para alterar o status da O.S");
         }
+    	
+    	if(List.of(5, 6).contains(pedido.getStatus())) {
+			throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
+		}
     	
     	String antigaJustificativa = pedido.getJustificativa();
     	
@@ -186,10 +240,7 @@ public class PedidoService {
     }
     
     
-    // Devolve a O.S para a fila
-    public void devolverParaAFila(UUID id, Usuario usuario) {
-    	
-    }
+    
 
     
     // Lista as O.Ss por equipamento
@@ -206,7 +257,10 @@ public class PedidoService {
     
     // Lista as O.Ss por técnico
     public List<Pedido> listarManutencoesAtribuidas(Usuario usuarioLogado) {
-    	return pedidoRepository.findByCpfTecnico(usuarioLogado.getCpf());
+    	return pedidoRepository.findByCpfTecnicoAndStatusNotIn(
+                usuarioLogado.getCpf(),
+                List.of(5, 6)
+        );
     }
     
     

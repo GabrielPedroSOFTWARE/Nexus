@@ -109,13 +109,27 @@ public class PedidoController {
     
     
     // Atribui o técino ao pedido
-    @PatchMapping("/adm/atribuir-tecnico/{id}")
+    @PatchMapping("/backoffice/atribuir-tecnico/{id}")
     public ResponseEntity<String> atribuirTecnico(@PathVariable("id") UUID id,
     		@RequestBody String cpfTecnico, @AuthenticationPrincipal Usuario usuario) {
     	try {
     		pedidoService.atribuirTecnico(id, cpfTecnico, usuario);
     		return ResponseEntity.ok("Tecnico atribuído ao pedido");
     	} catch (RuntimeException e) {
+    		return ResponseEntity.badRequest().body(e.getMessage());
+    	}
+    }
+    
+    
+    // Devolve a O.S à fila (desatribui um técnico)
+    @PatchMapping("/backoffice/devolver-a-fila/{id}")
+    public ResponseEntity<String> devolverPedidoAFila(@PathVariable("id") UUID id,
+    		@AuthenticationPrincipal Usuario usuario,
+    		@RequestBody String justificativa) {
+    	try {
+    		pedidoService.devolverParaAFila(id, usuario, justificativa);
+    		return ResponseEntity.ok("O.S foi devolvida para a fila");
+    	} catch(RuntimeException e) {
     		return ResponseEntity.badRequest().body(e.getMessage());
     	}
     }

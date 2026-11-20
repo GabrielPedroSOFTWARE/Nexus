@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -72,10 +73,11 @@ public class NotificacaoService {
 	
 	
 	// Envia a notificação de alteração do status para o usuário
-	public void enviarNotificacao(String cpfUsuario, int status) {
+	public void enviarNotificacao(String cpfUsuario, int status, LocalDate prazo) {
 	    NotificacaoUsuario aviso = new NotificacaoUsuario();
 	    aviso.setCpfUsuario(cpfUsuario);
 	    aviso.setStatus(status);
+	    if(prazo != null) aviso.setPrazo(prazo);
 	    notificacaoRepository.save(aviso);
 	}
 	
