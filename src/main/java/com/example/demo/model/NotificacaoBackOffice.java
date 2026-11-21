@@ -18,7 +18,7 @@ public class NotificacaoBackOffice {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 	private String cpfTecnico;
-	private UUID idPedido;
+	private String idPedido;
 	private String mensagem;
 	private boolean lida = false;
 	private LocalDateTime dataCriacao = LocalDateTime.now();

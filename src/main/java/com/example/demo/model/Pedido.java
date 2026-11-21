@@ -1,13 +1,12 @@
 package com.example.demo.model;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
@@ -22,8 +21,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Pedido {
 	@Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+	@Column(length = 32) // "OS-" (3) + ano (4) + 8 números = 15 caracteres
+	private String id;
 	private Long idPC;
 	private String cpfUsuario;
 	private String apelido;
@@ -43,6 +42,14 @@ public class Pedido {
 	private String justificativa;
 	private String justificativaCancelamento;
 	private boolean alertaPrazoEnviado = false;
+	
+	private LocalDateTime ultimaAlteracao;
+	private int nivelAlertaInatividade = 0;
+	
+	public void registrarMovimentacao() {
+	    this.ultimaAlteracao = LocalDateTime.now();
+	    this.nivelAlertaInatividade = 0;
+	}
 	
 	
 	// Preenche os dados iniciais de uma O.S

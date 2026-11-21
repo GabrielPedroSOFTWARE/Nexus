@@ -52,7 +52,7 @@ public class PedidoController {
     		@ModelAttribute Pedido novoPedido, 
             @RequestParam(value = "arquivoImagem", required = false) MultipartFile arquivoFoto,
             @AuthenticationPrincipal Usuario usuario,
-            @PathVariable("id") UUID id
+            @PathVariable("id") String id
             ) {
     	try {
     		pedidoService.alterarPedido(novoPedido, arquivoFoto, id, usuario);
@@ -65,7 +65,7 @@ public class PedidoController {
     
     // Cancela a O.S
     @PatchMapping("/backoffice/cancelar-pedido/{id}")
-    public ResponseEntity<String> cancelarPedido(@PathVariable("id") UUID id,
+    public ResponseEntity<String> cancelarPedido(@PathVariable("id") String id,
     		@AuthenticationPrincipal Usuario usuario,
     		@RequestBody String justificativa) {
     	try {
@@ -79,7 +79,7 @@ public class PedidoController {
     
     // Altera o status da O.S
     @PatchMapping("/backoffice/alterar-status-pedido/{id}")
-    public ResponseEntity<String> alterarStatusPedido(@PathVariable("id") UUID id,
+    public ResponseEntity<String> alterarStatusPedido(@PathVariable("id") String id,
     		@RequestBody Map<String, String> dados,
     		@AuthenticationPrincipal Usuario usuario) {
         try {
@@ -94,7 +94,7 @@ public class PedidoController {
     // Define a justificativa da O.S
     @PatchMapping("/backoffice/definir-justificativa-pedido/{id}")
     public ResponseEntity<String> definirJustificativa(
-    		@PathVariable("id") UUID id,
+    		@PathVariable("id") String id,
     		@RequestBody String justificativa,
     		@AuthenticationPrincipal Usuario usuario) {
     	
@@ -110,7 +110,7 @@ public class PedidoController {
     
     // Atribui o técino ao pedido
     @PatchMapping("/backoffice/atribuir-tecnico/{id}")
-    public ResponseEntity<String> atribuirTecnico(@PathVariable("id") UUID id,
+    public ResponseEntity<String> atribuirTecnico(@PathVariable("id") String id,
     		@RequestBody String cpfTecnico, @AuthenticationPrincipal Usuario usuario) {
     	try {
     		pedidoService.atribuirTecnico(id, cpfTecnico, usuario);
@@ -123,7 +123,7 @@ public class PedidoController {
     
     // Devolve a O.S à fila (desatribui um técnico)
     @PatchMapping("/backoffice/devolver-a-fila/{id}")
-    public ResponseEntity<String> devolverPedidoAFila(@PathVariable("id") UUID id,
+    public ResponseEntity<String> devolverPedidoAFila(@PathVariable("id") String id,
     		@AuthenticationPrincipal Usuario usuario,
     		@RequestBody String justificativa) {
     	try {

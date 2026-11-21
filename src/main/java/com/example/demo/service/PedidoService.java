@@ -2,10 +2,11 @@ package com.example.demo.service;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,9 +52,17 @@ public class PedidoService {
 	    if (!equipamentoRepository.verificarPossivelExclusaoEquipamento(novoPedido.getIdPC(), cpf)) {
 	        throw new RuntimeException("Há uma O.S em aberto para esse equipamento");
 	    }
+	    String novoId;
+	    do {
+	        int numeroAleatorio = ThreadLocalRandom.current().nextInt(100_000_000);
+	        novoId = "OS-" + Year.now().getValue() + "-" + String.format("%08d", numeroAleatorio);
+	    } while (pedidoRepository.existsById(novoId));
+
+	    novoPedido.setId(novoId);
 
 	    novoPedido.definirDadosIniciais(cpf, arquivoFoto);
 	    novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
+	    novoPedido.registrarMovimentacao();
 
 	    pedidoRepository.save(novoPedido);
 	    String mensagem = "Nova O.S. aberta!";
@@ -63,7 +72,7 @@ public class PedidoService {
 
 	
 	// Altera uma O.S
-	public void alterarPedido(Pedido novoPedido, MultipartFile arquivoFoto, UUID id, Usuario usuario) 
+	public void alterarPedido(Pedido novoPedido, MultipartFile arquivoFoto, String id, Usuario usuario) 
 			throws IOException {
 	    Pedido pedidoAtual = pedidoRepository.findById(id)
 	            .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
@@ -73,6 +82,7 @@ public class PedidoService {
 	    novoPedido.preservarDadosOriginais(pedidoAtual);
 	    novoPedido.anexarFoto(arquivoFoto);
 	    novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
+	    novoPedido.registrarMovimentacao();
 
 	    pedidoRepository.save(novoPedido);
 	    historicoPedidoService.registrarAcao(pedidoAtual, usuario.getCpf(),
@@ -92,7 +102,7 @@ public class PedidoService {
 	
 	
 	// Cancela a O.S
-    public void cancelarPedido(UUID id, Usuario usuario, String justificativa) {
+    public void cancelarPedido(String id, Usuario usuario, String justificativa) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
         
@@ -115,7 +125,7 @@ public class PedidoService {
     
     
     // Altera o status da O.S
-    public void alterarStatusPedido(UUID id, Map<String, String> dados, Usuario usuario) {
+    public void alterarStatusPedido(String id, Map<String, String> dados, Usuario usuario) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
@@ -126,6 +136,8 @@ public class PedidoService {
 
         pedido.setStatus(statusNovo);
         LocalDate novoPrazo = aplicarDetalhesDoStatus(pedido, statusAntigo, statusNovo, dados);
+        if(novoPrazo != null) pedido.setAlertaPrazoEnviado(false);
+        pedido.registrarMovimentacao();
 
         notificacaoUsuarioService.enviarNotificacaoUsuario(pedido.getCpfUsuario(), statusNovo, novoPrazo);
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(),
@@ -172,14 +184,14 @@ public class PedidoService {
     
     
     // Atribui um técnico a uma O.S
-    public void atribuirTecnico(UUID id, String cpfTecnico, Usuario usuario) {
+    public void atribuirTecnico(String id, String cpfTecnico, Usuario usuario) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
         if (List.of(5, 6).contains(pedido.getStatus())) {
             throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
         }
-
+        cpfTecnico = cpfTecnico.replace("\"", "").trim();
         Usuario novoTecnico = (Usuario) usuarioRepository.findByCpf(cpfTecnico);
 
         String alteracao = "Técnico atribuído: " + novoTecnico.getNome();
@@ -189,6 +201,7 @@ public class PedidoService {
             		.findByCpf(pedido.getCpfTecnico());
             alteracao = "Técnico: " + antigoTecnico.getNome() + " -> " + novoTecnico.getNome();
         }
+        pedido.registrarMovimentacao();
 
         pedido.setCpfTecnico(novoTecnico.getCpf());
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
@@ -197,7 +210,7 @@ public class PedidoService {
     
     
     // Devolve a O.S para a fila
-    public void devolverParaAFila(UUID id, Usuario usuario, String justificativa) {
+    public void devolverParaAFila(String id, Usuario usuario, String justificativa) {
     	Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
     	
@@ -209,6 +222,7 @@ public class PedidoService {
     	pedido.setStatus(0);
     	pedido.setDataFinalManutencao(null);
     	pedido.setAlertaPrazoEnviado(false);
+    	pedido.registrarMovimentacao();
     	
     	String alteracao = "O.S de volta à fila\n"
     			+ "Justificativa: " + justificativa;
@@ -219,7 +233,7 @@ public class PedidoService {
     
     
     // Definir/Alterar a justificativa de uma O.S
-    public void definirJustificativa(UUID id, String justificativa, Usuario usuario) {
+    public void definirJustificativa(String id, String justificativa, Usuario usuario) {
     	Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
     	

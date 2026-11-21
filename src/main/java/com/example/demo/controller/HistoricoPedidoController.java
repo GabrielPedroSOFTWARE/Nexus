@@ -19,7 +19,7 @@ public class HistoricoPedidoController {
 
 	// Retorna o histórico da O.S alterada
 	@GetMapping("/backoffice/retornar-historico-pedido-alt/{id}")
-	public List<HistoricoPedido> retornarHistoricoAlteracaoPedido(@PathVariable("id") UUID id) {
+	public List<HistoricoPedido> retornarHistoricoAlteracaoPedido(@PathVariable("id") String id) {
 		return historicoPedidoService.buscarHistoricoDoPedido(id);
 	}
 }

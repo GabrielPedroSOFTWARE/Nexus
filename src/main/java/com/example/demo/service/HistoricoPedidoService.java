@@ -3,7 +3,6 @@ package com.example.demo.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,7 +43,7 @@ public class HistoricoPedidoService {
     }
     
     // Retorna todo o histórico de alteração de um pedido
-    public List<HistoricoPedido> buscarHistoricoDoPedido(UUID idPedido) {
+    public List<HistoricoPedido> buscarHistoricoDoPedido(String idPedido) {
         return historicoRepository.findByIdPedidoOrderByDataHoraDesc(idPedido);
     }
 }
