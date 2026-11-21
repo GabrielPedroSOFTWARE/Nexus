@@ -13,7 +13,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class NotificacaoTecnico {
+public class NotificacaoBackOffice {
 	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

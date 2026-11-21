@@ -14,7 +14,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     UserDetails findByCpf(String cpf);
     List<Usuario> findByCpfNot(String cpf);
     long countByPerfilNot(PerfilUsuario perfil);
-    List<Usuario> findByPerfilAndStatus(PerfilUsuario perfil, String string);
+    List<Usuario> findByPerfilNotAndStatus(PerfilUsuario perfil, String string);
     Optional<Usuario> findByTokenRecuperacao(String tokenRecuperacao);
     Optional<Usuario> findByCodigoEspera(String codigoEspera);
 }

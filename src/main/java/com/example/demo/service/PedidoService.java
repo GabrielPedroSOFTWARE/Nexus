@@ -23,7 +23,9 @@ public class PedidoService {
 	@Autowired
     private PedidoRepository pedidoRepository;
 	@Autowired
-	private NotificacaoService notificacaoService;
+	private NotificacaoUsuarioService notificacaoUsuarioService;
+	@Autowired
+	private NotificacaoBackOfficeService notificacaoBackOfficeService;
 	@Autowired
 	private PrioridadeService prioridadeService;
 	@Autowired
@@ -54,7 +56,8 @@ public class PedidoService {
 	    novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
 
 	    pedidoRepository.save(novoPedido);
-	    notificacaoService.enviarNotificacaoParaTecnicos(novoPedido);
+	    String mensagem = "Nova O.S. aberta!";
+	    notificacaoBackOfficeService.enviarNotificacaoNovoPedido(novoPedido, mensagem);
 	    historicoPedidoService.registrarAcao(novoPedido, cpf, "O.S criada");
 	}
 
@@ -101,6 +104,7 @@ public class PedidoService {
         	throw new RuntimeException("A O.S já foi cancelada");
         }
         
+        pedido.setAlertaPrazoEnviado(true);
         pedido.setStatus(6);
         pedido.setJustificativaCancelamento(justificativa);
         
@@ -123,7 +127,7 @@ public class PedidoService {
         pedido.setStatus(statusNovo);
         LocalDate novoPrazo = aplicarDetalhesDoStatus(pedido, statusAntigo, statusNovo, dados);
 
-        notificacaoService.enviarNotificacao(pedido.getCpfUsuario(), statusNovo, novoPrazo);
+        notificacaoUsuarioService.enviarNotificacaoUsuario(pedido.getCpfUsuario(), statusNovo, novoPrazo);
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(),
                 "Status: " + status.get(statusAntigo) + " -> " + status.get(statusNovo));
         pedidoRepository.save(pedido);
@@ -155,6 +159,7 @@ public class PedidoService {
         } else if ((antigo < 2 && novo == 2) || (antigo > 1 && novo == 1)) {
             LocalDate prazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
             pedido.setDataFinalManutencao(prazo);
+            pedido.setAlertaPrazoEnviado(false);
             return prazo;
         } else if (novo == 5) {
             pedido.setObservacoesTecnico(dados.get("observacao"));
@@ -202,6 +207,8 @@ public class PedidoService {
     	
     	pedido.setCpfTecnico(null);
     	pedido.setStatus(0);
+    	pedido.setDataFinalManutencao(null);
+    	pedido.setAlertaPrazoEnviado(false);
     	
     	String alteracao = "O.S de volta à fila\n"
     			+ "Justificativa: " + justificativa;

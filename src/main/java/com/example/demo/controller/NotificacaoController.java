@@ -11,28 +11,31 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.model.NotificacaoTecnico;
+import com.example.demo.model.NotificacaoBackOffice;
 import com.example.demo.model.NotificacaoUsuario;
 import com.example.demo.model.Usuario;
-import com.example.demo.service.NotificacaoService;
+import com.example.demo.service.NotificacaoBackOfficeService;
+import com.example.demo.service.NotificacaoUsuarioService;
 
 @RestController
 public class NotificacaoController {
 	
 	@Autowired
-	private NotificacaoService notificacaoService;
+	private NotificacaoUsuarioService notificacaoUsuarioService;
+	@Autowired
+	private NotificacaoBackOfficeService notificacaoBackOfficeService;
 
 	// Retorna as notificações do usuário
     @GetMapping("/user/retornar-notificacoes-usuario")
     public List<NotificacaoUsuario> retornarNotificacoesUsuario(@AuthenticationPrincipal Usuario usuario) {
-    	return notificacaoService.retornarNotificacoesUsuario(usuario);
+    	return notificacaoUsuarioService.retornarNotificacoesUsuario(usuario);
     }
     
 
     // Retorna as notificações do técnico
-    @GetMapping("/backoffice/retornar-notificacoes-tecnico")
-    public List<NotificacaoTecnico> retornarNotificacoesTecnico(@AuthenticationPrincipal Usuario tecnico) {
-    	return notificacaoService.retornarNotificacoesTecnico(tecnico);
+    @GetMapping("/backoffice/retornar-notificacoes-backoffice")
+    public List<NotificacaoBackOffice> retornarNotificacoesTecnico(@AuthenticationPrincipal Usuario backOffice) {
+    	return notificacaoBackOfficeService.retornarNotificacoesNovoPedido(backOffice);
     }
     
     
@@ -41,7 +44,7 @@ public class NotificacaoController {
     public ResponseEntity<String> marcarNotificacaoUsuarioComoLida(@PathVariable("id") UUID id,
     		@AuthenticationPrincipal Usuario usuario) {
     	try {
-    		notificacaoService.marcarNotificacaoUsuarioComoLida(id, usuario);
+    		notificacaoUsuarioService.marcarNotificacaoUsuarioComoLida(id, usuario);
     		return ResponseEntity.ok("Notificação marcada como lida");
     	} catch(RuntimeException e) {
     		return ResponseEntity.badRequest().body(e.getMessage());
@@ -50,11 +53,11 @@ public class NotificacaoController {
     
     
     // Marca a notificação do técnico como lida
-    @PatchMapping("/backoffice/marcar-notificacao-tecnico/{id}")
+    @PatchMapping("/backoffice/marcar-notificacao-backoffice/{id}")
     public ResponseEntity<String> marcarNotificacaoTecnicoComoLida(@PathVariable("id") UUID id,
     		@AuthenticationPrincipal Usuario tecnico) {
     	try {
-    		notificacaoService.marcarNotificacaoTecnicoComoLida(tecnico);
+    		notificacaoBackOfficeService.marcarNotificacaoTecnicoComoLida(tecnico);
     		return ResponseEntity.ok("Notificação marcada como lida");
     	} catch (RuntimeException e) {
     		return ResponseEntity.badRequest().body(e.getMessage());

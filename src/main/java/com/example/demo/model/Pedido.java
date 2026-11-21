@@ -42,6 +42,7 @@ public class Pedido {
 	private String observacoesTecnico;
 	private String justificativa;
 	private String justificativaCancelamento;
+	private boolean alertaPrazoEnviado = false;
 	
 	
 	// Preenche os dados iniciais de uma O.S
