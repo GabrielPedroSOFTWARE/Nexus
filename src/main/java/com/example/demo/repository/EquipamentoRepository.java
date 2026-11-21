@@ -32,6 +32,8 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Long> 
 	
 	Equipamento findByNumeroSerie(String numeroSerie);
 	
+	boolean existsByNumeroSerieAndCpfUsuarioNot(String numeroSerie, String cpfUsuario);
+	
 	Optional<Equipamento> findByCpfUsuarioAndFabricanteAndModeloAndProcessador(
 	        String cpfUsuario, 
 	        String fabricante, 

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.model.NotificacaoTecnico;
@@ -61,7 +60,7 @@ public class NotificacaoService {
 	
 	
 	// Retorna as notificações do usuário
-	public List<NotificacaoUsuario> retornarNotificacoesUsuario(@AuthenticationPrincipal Usuario usuario) {
+	public List<NotificacaoUsuario> retornarNotificacoesUsuario(Usuario usuario) {
     	return notificacaoRepository.findByCpfUsuario(usuario.getCpf());
     }
 	

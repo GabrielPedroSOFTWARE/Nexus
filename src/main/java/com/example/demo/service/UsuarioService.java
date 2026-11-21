@@ -36,7 +36,6 @@ public class UsuarioService {
 	// Realiza a solicitação de cadastro do usuário
 	public void cadastrarUsuario(Usuario novoUsuario) {
 		
-		
 		String cpfCriptografado = criptografiaService.criptografar(novoUsuario.getCpf());
 		
 		Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpfCriptografado);
@@ -68,12 +67,9 @@ public class UsuarioService {
     // Atualiza o status do usuário
     public void atualizarStatusUsuario(Map<String, String> dados) {
         
-    	String cpf = dados.get("cpf").replaceAll("\\D", "");
-    	cpf = criptografiaService.criptografar(cpf);
-    	
     	PerfilUsuario perfilDefinido = PerfilUsuario.valueOf(dados.get("perfil"));
     	
-        Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
+        Usuario usuario = (Usuario) usuarioRepository.findByCpf(dados.get("cpf"));
         
         usuario.setStatus("Ativo");
         usuario.setPerfil(perfilDefinido);
@@ -84,8 +80,6 @@ public class UsuarioService {
     
     // Nega a solicitação do usuário
     public void negarSolicitacaoUsuario(String cpf) {
-    	
-    	cpf = criptografiaService.criptografar(cpf);
     	
     	Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
         
@@ -168,6 +162,7 @@ public class UsuarioService {
     
     // Recebe o CPF, gera os dois códigos (o do e-mail e o "bipe" da tela) e envia o link
     public String solicitarRecuperacaoSenha(String cpf) {
+    	cpf = cpf.replaceAll("\\D", "");
     	String cpfCriptografado = criptografiaService.criptografar(cpf);
         Usuario usuario = usuarioRepository.findById(cpfCriptografado)
                 .orElseThrow(() -> new RuntimeException("CPF não encontrado no sistema."));

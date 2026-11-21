@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -104,37 +103,19 @@ public class EquipamentoService {
 	
 	
 	// Adiciona um novo equipamento ao banco de dados
-	public void adicionarNovoEquipamento(Equipamento equipamentoEnviado, Usuario usuarioLogado) {
-	    
-	    Equipamento equipamento = equipamentoRepository.findByNumeroSerie(equipamentoEnviado.getNumeroSerie());
-	    
-	    if(equipamento != null && !equipamento.getCpfUsuario().equals(usuarioLogado.getCpf())) {
-	    	throw new RuntimeException("Esse computador já está cadastrado no nome de outro usuário");
+	public void adicionarNovoEquipamento(Equipamento enviado, Usuario usuarioLogado) {
+	    String cpf = usuarioLogado.getCpf();
+
+	    if (equipamentoRepository.existsByNumeroSerieAndCpfUsuarioNot(enviado.getNumeroSerie(), cpf)) {
+	        throw new RuntimeException("Esse computador já está cadastrado no nome de outro usuário");
 	    }
-	    
-	    Optional<Equipamento> pcExistente = equipamentoRepository
+
+	    Equipamento equipamento = equipamentoRepository
 	            .findByCpfUsuarioAndFabricanteAndModeloAndProcessador(
-	            		usuarioLogado.getCpf(), 
-	                    equipamentoEnviado.getFabricante(),
-	                    equipamentoEnviado.getModelo(), 
-	                    equipamentoEnviado.getProcessador()
-	            );
-	            
-	    if (pcExistente.isPresent()) {
-	        
-	        Equipamento pcParaAtualizar = pcExistente.get();
-	        
-	        pcParaAtualizar.setRam(equipamentoEnviado.getRam());
-	        pcParaAtualizar.setDiscos(equipamentoEnviado.getDiscos());
-	        pcParaAtualizar.setPlacasDeVideo(equipamentoEnviado.getPlacasDeVideo());
-	        
-	        equipamentoRepository.save(pcParaAtualizar);
-	        
-	    } else {
-	        equipamentoEnviado.setCpfUsuario(usuarioLogado.getCpf());
-	        
-	        equipamentoRepository.save(equipamentoEnviado);
-	    }
+	                    cpf, enviado.getFabricante(), enviado.getModelo(), enviado.getProcessador())
+	            .orElse(enviado);
+
+	    equipamentoRepository.save(equipamento.atualizarHardware(enviado, cpf));
 	}
 	
 	
@@ -161,7 +142,6 @@ public class EquipamentoService {
 	
 	// Retorna os equipamentos que podem receber uma O.S
 	public List<Equipamento> retornarEquipamentosParaPedidos(String cpfUsuario) {
-		cpfUsuario = cpfUsuario.replaceAll("\\D", "");
         return equipamentoRepository.buscarEquipamentosComStatusFinalizadoPorUsuario(cpfUsuario);
     }
 	

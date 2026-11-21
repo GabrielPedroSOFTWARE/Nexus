@@ -1,6 +1,9 @@
 package com.example.demo.model;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.UUID;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -39,4 +42,30 @@ public class Pedido {
 	private String observacoesTecnico;
 	private String justificativa;
 	private String justificativaCancelamento;
+	
+	
+	// Preenche os dados iniciais de uma O.S
+	public void definirDadosIniciais(String cpfUsuario, MultipartFile arquivoFoto) 
+	        throws IOException {
+	    this.cpfUsuario = cpfUsuario;
+	    this.dataInicioManutencao = LocalDate.now();
+	    this.status = 0;
+	    anexarFoto(arquivoFoto);
+	}
+
+	// Preserva os dados que não podem ser alterados
+	public void preservarDadosOriginais(Pedido original) {
+	    this.id = original.getId();
+	    this.cpfUsuario = original.getCpfUsuario();
+	    this.dataInicioManutencao = original.getDataInicioManutencao();
+	}
+
+	// Anexa a nova foto à O.S, caso houver
+	public void anexarFoto(MultipartFile arquivoFoto) throws IOException {
+	    if (arquivoFoto != null && !arquivoFoto.isEmpty()) {
+	        this.foto = arquivoFoto.getBytes();
+	        this.nomeArquivoFoto = arquivoFoto.getOriginalFilename();
+	        this.tipoArquivoFoto = arquivoFoto.getContentType();
+	    }
+	}
 }

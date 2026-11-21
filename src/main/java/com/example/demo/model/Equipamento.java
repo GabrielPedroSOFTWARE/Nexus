@@ -42,4 +42,14 @@ public class Equipamento {
 	private List<String> discos;
 	private String sistemaOperacional;
 	
+	
+	// Atualiza o Hardware
+	public Equipamento atualizarHardware(Equipamento origem, String cpf) {
+	    this.cpfUsuario = cpf;
+	    this.ram = origem.getRam();
+	    this.discos = origem.getDiscos();
+	    this.placasDeVideo = origem.getPlacasDeVideo();
+	    return this;
+	}
+	
 }

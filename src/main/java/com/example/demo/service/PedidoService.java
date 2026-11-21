@@ -43,64 +43,50 @@ public class PedidoService {
 	
 	// Cria uma nova O.S
 	public void criarNovoPedido(Pedido novoPedido, MultipartFile arquivoFoto, Usuario usuario) 
-			throws IOException  {
-		
-		boolean fazParte = equipamentoRepository
-    			.verificarPossivelExclusaoEquipamento(novoPedido.getIdPC(), usuario.getCpf());
-		
-		if(!fazParte) {
-			throw new RuntimeException("Há uma O.S em aberto para esse equipamento");
-		}
-		
-		if (arquivoFoto != null && !arquivoFoto.isEmpty()) {
-			
-            novoPedido.setFoto(arquivoFoto.getBytes());
-            novoPedido.setNomeArquivoFoto(arquivoFoto.getOriginalFilename());
-            novoPedido.setTipoArquivoFoto(arquivoFoto.getContentType());
-        }
-		
-        novoPedido.setDataInicioManutencao(LocalDate.now());
-        novoPedido.setStatus(0);
-        novoPedido.setCpfUsuario(usuario.getCpf());
-        novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
-        
-        pedidoRepository.save(novoPedido);
-        
-        notificacaoService.enviarNotificacaoParaTecnicos(novoPedido);
-        
-        String alteracao = "O.S criada";
-        historicoPedidoService.registrarAcao(novoPedido, usuario.getCpf(), alteracao);
+			throws IOException {
+	    String cpf = usuario.getCpf();
+
+	    if (!equipamentoRepository.verificarPossivelExclusaoEquipamento(novoPedido.getIdPC(), cpf)) {
+	        throw new RuntimeException("Há uma O.S em aberto para esse equipamento");
+	    }
+
+	    novoPedido.definirDadosIniciais(cpf, arquivoFoto);
+	    novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
+
+	    pedidoRepository.save(novoPedido);
+	    notificacaoService.enviarNotificacaoParaTecnicos(novoPedido);
+	    historicoPedidoService.registrarAcao(novoPedido, cpf, "O.S criada");
 	}
 
 	
 	// Altera uma O.S
-	public void alterarPedido(Pedido novoPedido, MultipartFile arquivoFoto, UUID id, Usuario usuario)
-	throws IOException {
-		Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
-		
-		if(!usuario.isEhAdmin() && !usuario.getCpf().equals(pedido.getCpfUsuario())) {
-			throw new RuntimeException("Você não tem permissão para alterar essa O.S");
-		}
-		
-		if(List.of(5, 6).contains(pedido.getStatus())) {
-			throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
-		}
-		
-		if (arquivoFoto != null && !arquivoFoto.isEmpty()) {
-			
-            novoPedido.setFoto(arquivoFoto.getBytes());
-            novoPedido.setNomeArquivoFoto(arquivoFoto.getOriginalFilename());
-            novoPedido.setTipoArquivoFoto(arquivoFoto.getContentType());
-        }
-		novoPedido.setId(id);
-		novoPedido.setCpfUsuario(pedido.getCpfUsuario());
-		novoPedido.setDataInicioManutencao(pedido.getDataInicioManutencao());
-		novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
-		pedidoRepository.save(novoPedido);
-		String alteracao = "Mudança dos dados da O.S";
-        historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
+	public void alterarPedido(Pedido novoPedido, MultipartFile arquivoFoto, UUID id, Usuario usuario) 
+			throws IOException {
+	    Pedido pedidoAtual = pedidoRepository.findById(id)
+	            .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+
+	    validarAlteracao(pedidoAtual, usuario);
+
+	    novoPedido.preservarDadosOriginais(pedidoAtual);
+	    novoPedido.anexarFoto(arquivoFoto);
+	    novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
+
+	    pedidoRepository.save(novoPedido);
+	    historicoPedidoService.registrarAcao(pedidoAtual, usuario.getCpf(),
+	    		"Mudança dos dados da O.S");
 	}
+	
+	
+	// Valida a alteração da O.S
+	private void validarAlteracao(Pedido pedido, Usuario usuario) {
+	    if (!usuario.isEhAdmin() && !usuario.getCpf().equals(pedido.getCpfUsuario())) {
+	        throw new RuntimeException("Você não tem permissão para alterar essa O.S");
+	    }
+	    if (List.of(5, 6).contains(pedido.getStatus())) {
+	        throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
+	    }
+	}
+	
 	
 	// Cancela a O.S
     public void cancelarPedido(UUID id, Usuario usuario, String justificativa) {
@@ -126,79 +112,80 @@ public class PedidoService {
     
     // Altera o status da O.S
     public void alterarStatusPedido(UUID id, Map<String, String> dados, Usuario usuario) {
-    	Pedido pedido = pedidoRepository.findById(id)
-    			.orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
-    	
-    	int statusAntigo = pedido.getStatus();
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
-    	if(List.of(5, 6).contains(statusAntigo)) {
-    		throw new RuntimeException("A O.S já foi " + status.get(statusAntigo));
-    	}
-    	
-    	if(pedido.getCpfTecnico() == null) {
-    		throw new RuntimeException("Defina primeiro um técnico"
-    				+ " antes de alterar o status da O.S");
-    	}
-        
-        if(pedido.getCpfTecnico() != null && !usuario.isEhAdmin()
-        		&& !usuario.getCpf().equals(pedido.getCpfTecnico())) {
-        	throw new RuntimeException("Sem autorização para alterar o status da O.S");
-        }
-        
-        
+        int statusAntigo = pedido.getStatus();
         int statusNovo = Integer.parseInt(dados.get("novoStatusId"));
-        if(statusNovo == 0) {
-        	throw new RuntimeException("Status só pode voltar para o início ao devolvê-lo à fila");
-        }
+
+        validarAlteracaoStatus(pedido, statusNovo, usuario);
+
         pedido.setStatus(statusNovo);
-        
-        LocalDate novoPrazo = null;
-        
-        if(statusAntigo == 0 && statusNovo == 1) pedido.setObservacoesTecnico(dados.get("observacao"));
-        else if(statusAntigo < 2 && statusNovo == 2) {
-        	novoPrazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
-        	pedido.setDataFinalManutencao(novoPrazo);
-        }
-        else if(statusAntigo > 1 && statusNovo == 1) {
-        	novoPrazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
-        	pedido.setDataFinalManutencao(LocalDate.parse(dados.get("prazo"), formatadorDataHora));
-        }
-        else if (statusNovo == 5) {
-        	pedido.setObservacoesTecnico("observacao");
-        	pedido.setDescricao(dados.get("descricao"));
-        } else if(statusAntigo > statusNovo) pedido.setJustificativa("justificativa");
-        
+        LocalDate novoPrazo = aplicarDetalhesDoStatus(pedido, statusAntigo, statusNovo, dados);
+
         notificacaoService.enviarNotificacao(pedido.getCpfUsuario(), statusNovo, novoPrazo);
-        String alteracao = "Status: " +
-        		status.get(statusAntigo) + " -> " + status.get(statusNovo);
-        historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
-        
+        historicoPedidoService.registrarAcao(pedido, usuario.getCpf(),
+                "Status: " + status.get(statusAntigo) + " -> " + status.get(statusNovo));
         pedidoRepository.save(pedido);
+    }
+    
+    
+    // Valida a alteração do status da O.S
+    private void validarAlteracaoStatus(Pedido pedido, int statusNovo, Usuario usuario) {
+        if (List.of(5, 6).contains(pedido.getStatus())) {
+            throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
+        }
+        if (pedido.getCpfTecnico() == null) {
+            throw new RuntimeException("Defina primeiro um técnico antes de alterar o status da O.S");
+        }
+        if (!usuario.isEhAdmin() && !usuario.getCpf().equals(pedido.getCpfTecnico())) {
+            throw new RuntimeException("Sem autorização para alterar o status da O.S");
+        }
+        if (statusNovo == 0) {
+            throw new RuntimeException("Status só pode voltar para o início ao devolvê-lo à fila");
+        }
+    }
+
+    
+    // Aplica os detalhes para cada mudança de status
+    private LocalDate aplicarDetalhesDoStatus(Pedido pedido, int antigo, int novo,
+    		Map<String, String> dados) {
+        if (antigo == 0 && novo == 1) {
+            pedido.setObservacoesTecnico(dados.get("observacao"));
+        } else if ((antigo < 2 && novo == 2) || (antigo > 1 && novo == 1)) {
+            LocalDate prazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
+            pedido.setDataFinalManutencao(prazo);
+            return prazo;
+        } else if (novo == 5) {
+            pedido.setObservacoesTecnico(dados.get("observacao"));
+            pedido.setDescricao(dados.get("descricao"));
+        } else if (antigo > novo) {
+            pedido.setJustificativa(dados.get("justificativa"));
+        }
+        return null;
     }
     
     
     // Atribui um técnico a uma O.S
     public void atribuirTecnico(UUID id, String cpfTecnico, Usuario usuario) {
-    	Pedido pedido = pedidoRepository.findById(id)
+        Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
-    	
-    	if(List.of(5, 6).contains(pedido.getStatus())) {
-			throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
-		}
-        
-    	cpfTecnico = cpfTecnico.replaceAll("\\D", "");
-        Usuario novoTecnico = usuarioRepository.findById(cpfTecnico)
-                .orElseThrow(() -> new RuntimeException("Novo técnico não encontrado"));
+
+        if (List.of(5, 6).contains(pedido.getStatus())) {
+            throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
+        }
+
+        Usuario novoTecnico = (Usuario) usuarioRepository.findByCpf(cpfTecnico);
 
         String alteracao = "Técnico atribuído: " + novoTecnico.getNome();
 
         if (pedido.getCpfTecnico() != null) {
-            Usuario antigoTecnico = usuarioRepository.findById(pedido.getCpfTecnico())
-                    .orElseThrow(() -> new RuntimeException("Técnico anterior não encontrado"));
+            Usuario antigoTecnico = (Usuario) usuarioRepository
+            		.findByCpf(pedido.getCpfTecnico());
             alteracao = "Técnico: " + antigoTecnico.getNome() + " -> " + novoTecnico.getNome();
         }
 
-        pedido.setCpfTecnico(cpfTecnico);
+        pedido.setCpfTecnico(novoTecnico.getCpf());
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
         pedidoRepository.save(pedido);
     }
@@ -249,9 +236,6 @@ public class PedidoService {
     	pedidoRepository.save(pedido);
     }
     
-    
-    
-
     
     // Lista as O.Ss por equipamento
     public List<Pedido> listarManutencoesEquipamento(Long id) {
