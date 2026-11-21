@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -63,6 +64,7 @@ public class PedidoService {
 	    novoPedido.definirDadosIniciais(cpf, arquivoFoto);
 	    novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
 	    novoPedido.registrarMovimentacao();
+	    novoPedido.setDataHoraAbertura(LocalDateTime.now());
 
 	    pedidoRepository.save(novoPedido);
 	    String mensagem = "Nova O.S. aberta!";
@@ -138,7 +140,14 @@ public class PedidoService {
         LocalDate novoPrazo = aplicarDetalhesDoStatus(pedido, statusAntigo, statusNovo, dados);
         if(novoPrazo != null) pedido.setAlertaPrazoEnviado(false);
         pedido.registrarMovimentacao();
-
+        
+        if(statusNovo == 1) pedido.setDataHoraInicioDiagnostico(LocalDateTime.now());
+        else if(statusNovo == 5) pedido.setDataHoraConclusao(LocalDateTime.now());
+        
+        if (statusNovo < 4) {
+            pedido.setDataHoraProntaRetirada(null);
+        }
+        
         notificacaoUsuarioService.enviarNotificacaoUsuario(pedido.getCpfUsuario(), statusNovo, novoPrazo);
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(),
                 "Status: " + status.get(statusAntigo) + " -> " + status.get(statusNovo));
@@ -195,6 +204,10 @@ public class PedidoService {
         Usuario novoTecnico = (Usuario) usuarioRepository.findByCpf(cpfTecnico);
 
         String alteracao = "Técnico atribuído: " + novoTecnico.getNome();
+        
+        if (pedido.getDataHoraAtribuicaoTecnico() == null) {
+            pedido.setDataHoraAtribuicaoTecnico(LocalDateTime.now());
+        }
 
         if (pedido.getCpfTecnico() != null) {
             Usuario antigoTecnico = (Usuario) usuarioRepository

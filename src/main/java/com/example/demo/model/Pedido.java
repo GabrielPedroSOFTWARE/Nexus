@@ -23,6 +23,11 @@ public class Pedido {
 	@Id
 	@Column(length = 32) // "OS-" (3) + ano (4) + 8 números = 15 caracteres
 	private String id;
+	private LocalDateTime dataHoraAbertura;
+	private LocalDateTime dataHoraAtribuicaoTecnico;
+	private LocalDateTime dataHoraInicioDiagnostico;
+	private LocalDateTime dataHoraProntaRetirada;
+	private LocalDateTime dataHoraConclusao;
 	private Long idPC;
 	private String cpfUsuario;
 	private String apelido;

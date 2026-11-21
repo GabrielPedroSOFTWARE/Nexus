@@ -39,4 +39,10 @@ public interface PedidoRepository extends JpaRepository<Pedido, String>{
 		        @Param("nivel") int nivel,
 		        @Param("limite") LocalDateTime limite
 		);
+	
+	List<Pedido> findByStatusAndDataHoraConclusaoBetween(
+	        int status,
+	        LocalDateTime inicio,
+	        LocalDateTime fim
+	);
 }
