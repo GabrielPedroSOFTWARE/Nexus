@@ -104,7 +104,7 @@ public class NotificacaoBackOfficeService {
                 aviso.setCpfTecnico(admin.getCpf());
                 aviso.setIdPedido(pedido.getId());
                 aviso.setMensagem("O técnico " + tecnico.getNome() +
-                		" está a mais de 3 dias sem fazer alteração em uma O.S");
+                		" está a mais de 3 dias sem fazer alterações na " + pedido.getId());
                 listaParaSalvar.add(aviso);
             }
             notificacaoBackOfficeRepository.saveAll(listaParaSalvar);
@@ -123,7 +123,8 @@ public class NotificacaoBackOfficeService {
 	        NotificacaoBackOffice aviso = new NotificacaoBackOffice();
 	        aviso.setCpfTecnico(pedido.getCpfTecnico());
 	        aviso.setIdPedido(pedido.getId());
-	        aviso.setMensagem("Já se passaram três dias que você não fez nenhuma alteração em uma O.S");
+	        aviso.setMensagem("Já se passaram três dias que você não fez nenhuma alteração na "
+	        		+ pedido.getId());
 	        listaParaSalvar.add(aviso);
 	        pedidoRepository.save(pedido);
 	    }
@@ -141,7 +142,7 @@ public class NotificacaoBackOfficeService {
 	        NotificacaoBackOffice aviso = new NotificacaoBackOffice();
             aviso.setCpfTecnico(pedido.getCpfTecnico()); 
             aviso.setIdPedido(pedido.getId());
-            aviso.setMensagem("Você tem uma O.S que está quase chegando no prazo");
+            aviso.setMensagem("A " + pedido.getId() + " está quase chegando no prazo");
             listaParaSalvar.add(aviso);
 	        pedidoRepository.save(pedido);
 	    }
