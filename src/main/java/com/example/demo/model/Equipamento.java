@@ -41,6 +41,7 @@ public class Equipamento {
 	@ElementCollection
 	private List<String> discos;
 	private String sistemaOperacional;
+	private boolean ehNotebook;
 	
 	
 	// Atualiza o Hardware

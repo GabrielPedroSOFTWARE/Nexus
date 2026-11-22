@@ -40,7 +40,7 @@ public class SecurityConfig {
                     req.requestMatchers("/status-recuperacao").permitAll();
                     req.requestMatchers("/redefinir-senha").permitAll();
                     req.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN");
-                    req.requestMatchers("/backoffice/**").hasAnyRole("ADMIN", "MANAGER", "SUPPORT");
+                    req.requestMatchers("/backoffice/**").hasAnyRole("ADMIN", "SUPPORT_MANAGER");
                     req.requestMatchers("/adm/**").hasRole("ADMIN");
                     req.anyRequest().authenticated();
                 }).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

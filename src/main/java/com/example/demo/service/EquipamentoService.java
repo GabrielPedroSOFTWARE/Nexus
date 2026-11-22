@@ -45,6 +45,7 @@ public class EquipamentoService {
 	    equipamento.setRam((int) (hardware.getMemory().getTotal() / 1073741824L));
 	    equipamento.setPlacasDeVideo(lerPlacasDeVideo(hardware.getGraphicsCards()));
 	    equipamento.setDiscos(lerDiscos(hardware.getDiskStores()));
+	    equipamento.setEhNotebook(ehNotebook(hardware));
 	    
 	    return equipamento;
 	}
@@ -99,6 +100,24 @@ public class EquipamentoService {
 	            || minusculo.equals("none")
 	            || minusculo.contains("default")
 	            || minusculo.contains("o.e.m.");
+	}
+	
+	
+	// Verifica se é notebook ou não
+	private boolean ehNotebook(HardwareAbstractionLayer hardware) {
+	    if (!hardware.getPowerSources().isEmpty()) {
+	        return true;
+	    }
+
+	    String modelo = hardware.getComputerSystem().getModel();
+	    if (modelo != null) {
+	        modelo = modelo.toLowerCase();
+	        if (modelo.contains("notebook") || modelo.contains("laptop") || modelo.contains("book")) {
+	            return true;
+	        }
+	    }
+
+	    return false;
 	}
 	
 	

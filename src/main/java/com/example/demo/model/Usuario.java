@@ -59,8 +59,7 @@ public class Usuario implements UserDetails {
     			new SimpleGrantedAuthority("ROLE_ADMIN") : null;
     	SimpleGrantedAuthority perfilUsuario = switch(this.perfil) {
     		case PerfilUsuario.USER -> new SimpleGrantedAuthority("ROLE_USER");
-    		case PerfilUsuario.MANAGER -> new SimpleGrantedAuthority("ROLE_MANAGER");
-    		case PerfilUsuario.SUPPORT -> new SimpleGrantedAuthority("ROLE_SUPPORT");
+    		case PerfilUsuario.SUPPORT_MANAGER -> new SimpleGrantedAuthority("ROLE_SUPPORT_MANAGER");
 		default -> new SimpleGrantedAuthority("ROLE_PENDENT"); 
     	};
     	return Stream.of(admin, perfilUsuario)
