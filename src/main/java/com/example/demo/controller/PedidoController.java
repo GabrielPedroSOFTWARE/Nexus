@@ -3,7 +3,6 @@ package com.example.demo.controller;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -130,6 +129,20 @@ public class PedidoController {
     		pedidoService.devolverParaAFila(id, usuario, justificativa);
     		return ResponseEntity.ok("O.S foi devolvida para a fila");
     	} catch(RuntimeException e) {
+    		return ResponseEntity.badRequest().body(e.getMessage());
+    	}
+    }
+    
+    
+    // Define as observações do técnico sobre a O.S
+    @PatchMapping("/backoffice/realizar-observacoes/{id}")
+    public ResponseEntity<String> realizarObservacoesDoTecnico(@PathVariable("id") String id,
+    		@AuthenticationPrincipal Usuario usuario,
+    		@RequestBody String observacoes) {
+    	try {
+    		pedidoService.realizarObservacoes(id, usuario, observacoes);
+    		return ResponseEntity.ok("Observações adicionadas à O.S");
+    	} catch (RuntimeException e) {
     		return ResponseEntity.badRequest().body(e.getMessage());
     	}
     }

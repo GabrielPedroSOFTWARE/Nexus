@@ -60,7 +60,7 @@ public class PedidoService {
 	    } while (pedidoRepository.existsById(novoId));
 
 	    novoPedido.setId(novoId);
-
+	    
 	    novoPedido.definirDadosIniciais(cpf, arquivoFoto);
 	    novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
 	    novoPedido.registrarMovimentacao();
@@ -212,6 +212,9 @@ public class PedidoService {
         if (pedido.getCpfTecnico() != null) {
             Usuario antigoTecnico = (Usuario) usuarioRepository
             		.findByCpf(pedido.getCpfTecnico());
+            if(antigoTecnico.getCpf().equals(cpfTecnico)) {
+            	throw new RuntimeException("Este técnico já está atribuído a essa O.S");
+            }
             alteracao = "Técnico: " + antigoTecnico.getNome() + " -> " + novoTecnico.getNome();
         }
         pedido.registrarMovimentacao();
@@ -264,6 +267,33 @@ public class PedidoService {
     	
     	String alteracao = (antigaJustificativa != null && !antigaJustificativa.isEmpty()) ?
     			"Alteração de justificativa" : "Definição de justificativa";
+    	
+    	historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
+    	
+    	pedidoRepository.save(pedido);
+    }
+    
+    
+    // Realiza as obervações do técnico
+    public void realizarObservacoes(String id, Usuario usuario, String observacoes) {
+    	Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+    	
+    	if(!usuario.isEhAdmin() && !usuario.getCpf().equals(pedido.getCpfTecnico())) {
+        	throw new RuntimeException("Sem autorização para alterar o status da O.S");
+        }
+    	
+    	if(List.of(5, 6).contains(pedido.getStatus())) {
+			throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
+		}
+    	
+    	if(pedido.getStatus() != 2) {
+    		throw new RuntimeException("Só é possível adicionar uma observação na fase de diagnóstico");
+    	}
+    	
+    	pedido.setObservacoesTecnico(observacoes);
+    	
+    	String alteracao = "Observações do técnico adicionadas";
     	
     	historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
     	

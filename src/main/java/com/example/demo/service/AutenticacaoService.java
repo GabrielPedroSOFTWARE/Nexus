@@ -58,10 +58,10 @@ public class AutenticacaoService implements UserDetailsService {
         
         return switch (usuario.getStatus()) {
             case "Aguardando análise" -> ResponseEntity.status(HttpStatus.FORBIDDEN)
-            .body("Conta aguardando aprovação.");
+            .body("Conta aguardando aprovação do ADM.");
             
             case "Inativo" -> ResponseEntity.status(HttpStatus.FORBIDDEN)
-            .body("Conta inativa.");
+            .body("Conta inativa, procure o ADM para que sua conta seja ativada.");
             
             default -> null;
         };
