@@ -36,6 +36,8 @@ public class PedidoService {
 	private UsuarioRepository usuarioRepository;
 	@Autowired
 	private EquipamentoRepository equipamentoRepository;
+	@Autowired
+	private CriptografiaCpfService criptografiaService;
 	
 	private List<String> status = List.of("Recebida", "Em diagnóstico",
 			"Em manutenção", "Aguardando peças", "Pronto para retirada",
@@ -301,35 +303,50 @@ public class PedidoService {
     }
     
     
-    // Lista as O.Ss por equipamento
+ // Lista as O.Ss por equipamento
     public List<Pedido> listarManutencoesEquipamento(Long id) {
-    	return pedidoRepository.findByIdPC(id);
+        List<Pedido> pedidos = pedidoRepository.findByIdPC(id);
+        return preencherCpfsMascarados(pedidos);
     }
-    
-    
+
     // Lista as O.Ss por usuário
-    public List<Pedido> listarManutencoesUsuario (Usuario usuarioLogado) {
-		return pedidoRepository.findByCpfUsuario(usuarioLogado.getCpf());
-	}
-    
-    
+    public List<Pedido> listarManutencoesUsuario(Usuario usuarioLogado) {
+        List<Pedido> pedidos = pedidoRepository.findByCpfUsuario(usuarioLogado.getCpf());
+        return preencherCpfsMascarados(pedidos);
+    }
+
     // Lista as O.Ss por técnico
     public List<Pedido> listarManutencoesAtribuidas(Usuario usuarioLogado) {
-    	return pedidoRepository.findByCpfTecnicoAndStatusNotIn(
+        List<Pedido> pedidos = pedidoRepository.findByCpfTecnicoAndStatusNotIn(
                 usuarioLogado.getCpf(),
                 List.of(5, 6)
         );
+        return preencherCpfsMascarados(pedidos);
     }
-    
-    
+
     // Lista as O.Ss por frequência
     public List<Pedido> listarManutencoesPorFrequencia(int frequencia) {
-    	return pedidoRepository.findByFrequencia(frequencia);
+        List<Pedido> pedidos = pedidoRepository.findByFrequencia(frequencia);
+        return preencherCpfsMascarados(pedidos);
     }
-    
-    // Lista todas as O.Ss 
-    public List<Pedido> listarManutencoesAdmin () {
-    	return pedidoRepository.findAll();
+
+    // Lista todas as O.Ss
+    public List<Pedido> listarManutencoesAdmin() {
+        List<Pedido> pedidos = pedidoRepository.findAll();
+        return preencherCpfsMascarados(pedidos);
+    }
+
+    // Método auxiliar que percorre qualquer lista de pedidos e mascara os dois CPFs
+    private List<Pedido> preencherCpfsMascarados(List<Pedido> pedidos) {
+        for (Pedido pedido : pedidos) {
+            pedido.setCpfUsuarioDescriptografado(
+                    criptografiaService.descriptografarEMascarar(pedido.getCpfUsuario())
+            );
+            pedido.setCpfTecnicoDescriptografado(
+                    criptografiaService.descriptografarEMascarar(pedido.getCpfTecnico())
+            );
+        }
+        return pedidos;
     }
     
 }

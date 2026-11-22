@@ -16,6 +16,8 @@ public class NotificacaoUsuarioService {
 
 	@Autowired
 	private NotificacaoUsuarioRepository notificacaoRepository;
+	@Autowired
+	private CriptografiaCpfService criptografiaService;
 	
 	
 	// Marca a notificação do usuário como lida
@@ -36,8 +38,21 @@ public class NotificacaoUsuarioService {
 	
 	// Retorna as notificações do usuário
 	public List<NotificacaoUsuario> retornarNotificacoesUsuario(Usuario usuario) {
-    	return notificacaoRepository.findByCpfUsuario(usuario.getCpf());
-    }
+	    List<NotificacaoUsuario> notificacoes = notificacaoRepository
+	            .findByCpfUsuario(usuario.getCpf());
+
+	    // Se o usuário tiver CPF, destranca e mascara uma única vez
+	    if (usuario.getCpf() != null && !usuario.getCpf().isBlank()) {
+	        String cpfOriginal = criptografiaService.descriptografar(usuario.getCpf());
+	        String cpfMascarado = criptografiaService.descriptografarEMascarar(usuario.getCpf());
+
+	        for (NotificacaoUsuario notificacao : notificacoes) {
+	            notificacao.setCpfUsuarioDescriptografado(cpfMascarado);
+	        }
+	    }
+
+	    return notificacoes;
+	}
 	
 	
 	// Envia a notificação de alteração do status para o usuário

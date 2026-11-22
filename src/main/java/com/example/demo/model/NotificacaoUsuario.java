@@ -17,8 +17,8 @@ public class NotificacaoUsuario {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    
-    private String cpfUsuario; 
+    private String cpfUsuario;
+    private String cpfUsuarioDescriptografado;
     private Integer status;
     private String resumo;
     private LocalDate prazo;

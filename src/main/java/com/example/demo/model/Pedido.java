@@ -30,6 +30,7 @@ public class Pedido {
 	private LocalDateTime dataHoraConclusao;
 	private Long idPC;
 	private String cpfUsuario;
+	private String cpfUsuarioDescriptografado;
 	private String apelido;
 	private Integer status;
 	private Integer prioridade;
@@ -38,6 +39,7 @@ public class Pedido {
 	private LocalDate dataInicioManutencao;
 	private LocalDate dataFinalManutencao;
 	private String cpfTecnico;
+	private String cpfTecnicoDescriptografado;
 	@Lob
     private byte[] foto;
 	private String nomeArquivoFoto;

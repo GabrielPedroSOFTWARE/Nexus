@@ -18,6 +18,7 @@ public class NotificacaoBackOffice {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 	private String cpfTecnico;
+	private String cpfTecnicoDescriptografado;
 	private String idPedido;
 	private String mensagem;
 	private boolean lida = false;

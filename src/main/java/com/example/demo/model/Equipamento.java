@@ -31,6 +31,7 @@ public class Equipamento {
 	private Long id;
 	private String numeroSerie;
 	private String cpfUsuario;
+	private String cpfUsuarioDescriptografado;
 	private String fabricante;
 	private String modelo;
 	private String processador;

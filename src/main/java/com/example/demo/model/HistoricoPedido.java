@@ -22,7 +22,8 @@ public class HistoricoPedido {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String idPedido;
-    private String cpfUsuarioAutor; 
+    private String cpfUsuarioAutor;
+    private String cpfUsuarioAutorDescriptografado;
     private String dataHora; 
     private String apelido;
 	private Integer status;

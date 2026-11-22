@@ -26,6 +26,8 @@ public class NotificacaoBackOfficeService {
 	private UsuarioRepository usuarioRepository;
 	@Autowired
 	private PedidoRepository pedidoRepository;
+	@Autowired
+	private CriptografiaCpfService criptografiaService;
 	
 
 	// Marca a notificação do back office como lida
@@ -86,9 +88,19 @@ public class NotificacaoBackOfficeService {
 	
 	// Retorna a notificação para os back officers
 	public List<NotificacaoBackOffice> retornarNotificacoesNovoPedido(Usuario backOffice) {
-		return notificacaoBackOfficeRepository
-				.findByCpfTecnicoAndLidaFalseOrderByDataCriacaoDesc(backOffice.getCpf());
-    }
+	    List<NotificacaoBackOffice> notificacoes = notificacaoBackOfficeRepository
+	            .findByCpfTecnicoAndLidaFalseOrderByDataCriacaoDesc(backOffice.getCpf());
+
+	    if (!notificacoes.isEmpty()) {
+	        String cpfMascarado = criptografiaService.descriptografarEMascarar(backOffice.getCpf());
+
+	        for (NotificacaoBackOffice notificacao : notificacoes) {
+	            notificacao.setCpfTecnicoDescriptografado(cpfMascarado);
+	        }
+	    }
+
+	    return notificacoes;
+	}
 	
 	
 	/* Envia uma notificação para o ADM 24 horas depois de mandar a

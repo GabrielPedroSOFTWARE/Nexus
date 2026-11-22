@@ -38,6 +38,7 @@ public class Usuario implements UserDetails {
     @Id
     @Column(unique = true)
     private String cpf;
+    private String cpfDescriptografado;
     private String senha;
     private String justificativa;
 

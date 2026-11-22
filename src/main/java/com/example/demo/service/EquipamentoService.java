@@ -26,6 +26,8 @@ public class EquipamentoService {
 	private UsuarioRepository usuarioRepository;
 	@Autowired
 	private EquipamentoRepository equipamentoRepository;
+	@Autowired
+	private CriptografiaCpfService criptografiaService;
 
 	
 	// Gera o relatório do pc escaneado
@@ -161,13 +163,39 @@ public class EquipamentoService {
 	
 	// Retorna os equipamentos que podem receber uma O.S
 	public List<Equipamento> retornarEquipamentosParaPedidos(String cpfUsuario) {
-        return equipamentoRepository.buscarEquipamentosComStatusFinalizadoPorUsuario(cpfUsuario);
-    }
-	
-	
+	    List<Equipamento> equipamentos = equipamentoRepository
+	            .buscarEquipamentosComStatusFinalizadoPorUsuario(cpfUsuario);
+	    return preencherCpfMascarado(equipamentos);
+	}
+
 	// Retorna os equipamentos por usuário
 	public List<Equipamento> listarEquipamentosUsuario(Usuario usuarioLogado) {
-	    return equipamentoRepository.findByCpfUsuario(usuarioLogado.getCpf());
+	    List<Equipamento> equipamentos = equipamentoRepository
+	            .findByCpfUsuario(usuarioLogado.getCpf());
+	    return preencherCpfMascarado(equipamentos);
+	}
+
+	// Percorre a lista, destranca o CPF e guarda a versão mascarada em cada equipamento
+	private List<Equipamento> preencherCpfMascarado(List<Equipamento> equipamentos) {
+	    for (Equipamento eq : equipamentos) {
+	        if (eq.getCpfUsuario() != null && !eq.getCpfUsuario().isBlank()) {
+	            String cpfOriginal = criptografiaService.descriptografar(eq.getCpfUsuario());
+	            eq.setCpfUsuarioDescriptografado(mascararCpf(cpfOriginal));
+	        }
+	    }
+	    return equipamentos;
+	}
+
+	// Transforma "12345678900" em "***.456.789-**"
+	private String mascararCpf(String cpfOriginal) {
+	    if (cpfOriginal == null) return null;
+
+	    String numeros = cpfOriginal.replaceAll("\\D", "");
+	    if (numeros.length() != 11) {
+	        return "***.***.***-**";
+	    }
+
+	    return "***." + numeros.substring(3, 6) + "." + numeros.substring(6, 9) + "-**";
 	}
 	
 	

@@ -25,6 +25,7 @@ public class HistoricoUsuario {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String cpfUsuario;
+    private String cpfUsuarioDescriptografado;
     private String descricaoAlteracao;
     private LocalDateTime dataHoraAlteracao;
 }

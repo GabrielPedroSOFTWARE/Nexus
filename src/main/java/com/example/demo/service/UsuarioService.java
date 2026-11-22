@@ -59,9 +59,10 @@ public class UsuarioService {
     
 	
 	// Verifica se há algum usuário pendente
-    public List<Usuario> verificarPendentes() {
-        return usuarioRepository.findByStatus("Aguardando análise");
-    }
+	public List<Usuario> verificarPendentes() {
+	    List<Usuario> pendentes = usuarioRepository.findByStatus("Aguardando análise");
+	    return preencherCpfMascarado(pendentes);
+	}
     
     
     // Atualiza o status do usuário
@@ -156,7 +157,8 @@ public class UsuarioService {
     
     // Retorna os usuários logados, menos o admin
     public List<Usuario> retornarUsuarios(Usuario usuarioLogado) {
-    	return usuarioRepository.findByCpfNot(usuarioLogado.getCpf());
+        List<Usuario> usuarios = usuarioRepository.findByCpfNot(usuarioLogado.getCpf());
+        return preencherCpfMascarado(usuarios);
     }
     
     
@@ -232,5 +234,14 @@ public class UsuarioService {
         usuario.setValidadeTokenRecuperacao(null);
 
         usuarioRepository.save(usuario);
+    }
+    
+    private List<Usuario> preencherCpfMascarado(List<Usuario> usuarios) {
+        for (Usuario usuario : usuarios) {
+            usuario.setCpfDescriptografado(
+                    criptografiaService.descriptografarEMascarar(usuario.getCpf())
+            );
+        }
+        return usuarios;
     }
 }

@@ -51,6 +51,18 @@ public class CriptografiaCpfService {
             throw new RuntimeException("Erro ao criptografar dado", e);
         }
     }
+    
+    public String descriptografarEMascarar(String cpfCriptografado) {
+        if (cpfCriptografado == null || cpfCriptografado.isBlank()) return null;
+
+        String cpfOriginal = descriptografar(cpfCriptografado);
+        String numeros = cpfOriginal.replaceAll("\\D", "");
+        if (numeros.length() != 11) {
+            return "***.***.***-**";
+        }
+
+        return "***." + numeros.substring(3, 6) + "." + numeros.substring(6, 9) + "-**";
+    }
 
     // Destranca o cofre e devolve o CPF original
     public String descriptografar(String textoCriptografado) {
