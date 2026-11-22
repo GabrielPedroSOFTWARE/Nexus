@@ -1,8 +1,8 @@
 package com.example.demo.service;
 
 import java.text.Normalizer;
-import java.time.LocalDate;
-import java.util.stream.Stream;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,39 +17,61 @@ public class PrioridadeService {
     private PedidoRepository pedidoRepository;
 
 	
-	// Sugestão de prioridade com base em reincidência
-    public Integer sugerirPrioridadeInicial(Pedido novoPedido) {
-        int pontuacao = calcularPontosDoProblema(novoPedido.getProblema());
+	private static final int STATUS_CANCELADA = 6;
 
-        LocalDate trintaDiasAtras = LocalDate.now().minusDays(30);
-        long pedidosRecentes = pedidoRepository.countByIdPCAndDataInicioManutencaoAfter(
-                novoPedido.getIdPC(), trintaDiasAtras);
-        
-        if (pedidosRecentes > 0) pontuacao += 25;
+	// Risco físico / segurança 
+	private static final List<String> PALAVRAS_EMERGENCIA = List.of(
+	        "fumaca", "cheiro de queimado", "faisca", "curto", "choque", "pegando fogo"
+	);
 
-        if (pontuacao >= 50) return 2;
-        else if (pontuacao >= 30) return 1;
-        else return 0;
-        
-    }
-    
-    
-    // Calcula os pontos do problema
-    private int calcularPontosDoProblema(String problemaDeclarado) {
-    	if (problemaDeclarado == null || problemaDeclarado.isBlank()) return 0;
+	// Parada total
+	private static final List<String> PALAVRAS_CRITICAS = List.of(
+	        "nao liga", "n liga", "queimou", "nao da video", "sem video",
+	        "tela preta", "nao funciona", "nao inicia", "nao entra no windows"
+	);
 
-        String texto = Normalizer.normalize(problemaDeclarado, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase();
+	// Problemas de uso/desempenho 
+	private static final List<String> PALAVRAS_MEDIAS = List.of(
+	        "lento", "lentidao", "tela azul", "trava", "travando",
+	        "reiniciando", "desligando", "esquentando", "superaquecendo", "virus"
+	);
 
-        if (Stream.of("nao liga", "queimou", "fumaca",
-        		"nao da video", "tela preta", "nao funciona")
-                .anyMatch(texto::contains)) return 30;
+	
+	// Define a prioridade da O.S
+	public Integer definirPrioridade(Pedido novoPedido) {
+	    int pontuacao = calcularPontosDoProblema(novoPedido.getProblema());
 
-        if (Stream.of("lento", "lentidao", "tela azul",
-        		"trava", "reiniciando", "esquentando", "virus")
-                .anyMatch(texto::contains)) return 15;
+	    LocalDateTime trintaDiasAtras = LocalDateTime.now().minusDays(30);
+        long pedidosRecentes = pedidoRepository
+                .countByIdPCAndStatusNotAndDataHoraAberturaAfter(
+                        novoPedido.getIdPC(), STATUS_CANCELADA, trintaDiasAtras);
 
-        return 0;
-    }
+        if (pedidosRecentes >= 2) {
+            pontuacao += 50;
+        } else if (pedidosRecentes == 1) {
+            pontuacao += 30;
+        }
+
+	    if (pontuacao >= 50) return 2;      
+	    else if (pontuacao >= 30) return 1; 
+	    else return 0;
+	}
+
+	
+	// Calcula os pontos de prioridade com base em palavras-chave
+	private int calcularPontosDoProblema(String problema) {
+	    String textoCompleto = problema;
+
+	    if (textoCompleto.isBlank()) return 0;
+
+	    String texto = Normalizer.normalize(textoCompleto, Normalizer.Form.NFD)
+	            .replaceAll("\\p{M}", "")
+	            .toLowerCase();
+
+	    if (PALAVRAS_EMERGENCIA.stream().anyMatch(texto::contains)) return 50;
+	    if (PALAVRAS_CRITICAS.stream().anyMatch(texto::contains)) return 30;
+	    if (PALAVRAS_MEDIAS.stream().anyMatch(texto::contains)) return 15;
+
+	    return 0;
+	}
 }

@@ -62,7 +62,7 @@ public class PedidoService {
 	    novoPedido.setId(novoId);
 	    
 	    novoPedido.definirDadosIniciais(cpf, arquivoFoto);
-	    novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
+	    novoPedido.setPrioridade(prioridadeService.definirPrioridade(novoPedido));
 	    novoPedido.registrarMovimentacao();
 	    novoPedido.setDataHoraAbertura(LocalDateTime.now());
 
@@ -83,7 +83,7 @@ public class PedidoService {
 
 	    novoPedido.preservarDadosOriginais(pedidoAtual);
 	    novoPedido.anexarFoto(arquivoFoto);
-	    novoPedido.setPrioridade(prioridadeService.sugerirPrioridadeInicial(novoPedido));
+	    novoPedido.setPrioridade(prioridadeService.definirPrioridade(novoPedido));
 	    novoPedido.registrarMovimentacao();
 
 	    pedidoRepository.save(novoPedido);

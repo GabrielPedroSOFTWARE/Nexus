@@ -19,7 +19,11 @@ public interface PedidoRepository extends JpaRepository<Pedido, String>{
 	
 	List<Pedido> findByFrequencia(Integer frequencia);
 	
-	long countByIdPCAndDataInicioManutencaoAfter(Long idPC, LocalDate data);
+	long countByIdPCAndStatusNotAndDataHoraAberturaAfter(
+	        Long idPC,
+	        Integer statusCancelado,
+	        LocalDateTime dataLimite
+	);
 	
 	List<Pedido> findByStatusNotInAndAlertaPrazoEnviadoFalseAndDataFinalManutencaoBetween(
 	        List<Integer> statusIgnorados,

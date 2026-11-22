@@ -33,7 +33,7 @@ public class AutenticacaoController {
         try {
         	return autenticacaoService.efetuarLogin(dados);
         } catch(Exception e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Cpf ou senha errados");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         }
     }
     
