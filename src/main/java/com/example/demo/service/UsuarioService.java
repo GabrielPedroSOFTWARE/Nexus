@@ -66,30 +66,56 @@ public class UsuarioService {
     
     
     // Atualiza o status do usuário
-    public void atualizarStatusUsuario(Map<String, String> dados) {
-        
-    	PerfilUsuario perfilDefinido = PerfilUsuario.valueOf(dados.get("perfil"));
-    	
-        Usuario usuario = (Usuario) usuarioRepository.findByCpf(dados.get("cpf"));
-        
-        usuario.setStatus("Ativo");
-        usuario.setPerfil(perfilDefinido);
-        
-        usuarioRepository.save(usuario);
-    }
+	public void atualizarStatusUsuario(Map<String, String> dados) {
+	    PerfilUsuario perfilDefinido = PerfilUsuario.valueOf(dados.get("perfil"));
+
+	    Usuario usuario = (Usuario) usuarioRepository.findByCpf(dados.get("cpf"));
+	    if (usuario == null) {
+	        throw new RuntimeException("Usuário não encontrado");
+	    }
+
+	    usuario.setStatus("Ativo");
+	    usuario.setPerfil(perfilDefinido);
+
+	    usuarioRepository.save(usuario);
+
+	    try {
+	        emailService.enviarEmailSolicitacaoAceita(
+	                usuario.getEmail(),
+	                usuario.getNome(),
+	                perfilDefinido
+	        );
+	    } catch (Exception e) {
+	        System.err.println("Usuário aprovado, mas falhou o envio do e-mail: " + e.getMessage());
+	    }
+	}
     
     
     // Nega a solicitação do usuário
-    public void negarSolicitacaoUsuario(String cpf) {
-    	
-    	Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
-        
-        if(!usuario.getStatus().equals("Aguardando análise")) {
-        	throw new RuntimeException("Usuário já está cadastrado");
-        }
-        
-    	usuarioRepository.deleteById(cpf);
-    }
+	public void negarSolicitacaoUsuario(String cpf) {
+		
+		cpf = cpf.replace("\"", "");
+	    Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
+
+	    if (usuario == null) {
+	        throw new RuntimeException("Usuário não encontrado");
+	    }
+
+	    if (!"Aguardando análise".equals(usuario.getStatus())) {
+	        throw new RuntimeException("Usuário já está cadastrado");
+	    }
+
+	    String emailDestino = usuario.getEmail();
+	    String nomeUsuario = usuario.getNome();
+
+	    usuarioRepository.deleteById(cpf);
+
+	    try {
+	        emailService.enviarEmailSolicitacaoNegada(emailDestino, nomeUsuario);
+	    } catch (Exception e) {
+	        System.err.println("Solicitação negada, mas falhou o envio do e-mail: " + e.getMessage());
+	    }
+	}
     
     
     // Atualiza múltiplos usuários de uma só vez
