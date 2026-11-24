@@ -162,6 +162,34 @@ public class NotificacaoBackOfficeService {
 			
 		notificacaoBackOfficeRepository.saveAll(listaParaSalvar);
 	}
+	
+	
+	// Envia uma notificação de que a tarefa foi atribuída/reatribuída a um técnico ou voltou para a fila
+	public void enviarNotificacaoAtribuicao(Usuario tecnicoAntigo, Usuario tecnicoNovo, Pedido pedido,
+			Usuario usuario) {
+		List<Usuario> backOfficers = 
+        		usuarioRepository.findByPerfilNotAndStatus(PerfilUsuario.USER, "Ativo");
+		List<NotificacaoBackOffice> listarParaSalvar = new ArrayList<>();
+		String mensagem = "";
+		if(tecnicoAntigo != null && tecnicoNovo != null) {
+			mensagem = "A " + pedido.getId() + " foi reatribuída para o técnico/gestor: " + tecnicoNovo;
+		} else if(tecnicoAntigo == null && tecnicoNovo == null) {
+			mensagem = "A " + pedido.getId() + " foi devolvida à fila";
+		} else {
+			mensagem = "A " + pedido.getId() + " foi atribuída ao técnico/gestor: " + tecnicoNovo;
+			}
+		
+		for(Usuario backOfficer : backOfficers) {
+			if(backOfficer.getCpf().equals(usuario.getCpf())) continue;
+			NotificacaoBackOffice aviso = new NotificacaoBackOffice();
+			aviso.setCpfTecnico(backOfficer.getCpf());
+			aviso.setIdPedido(pedido.getId());
+			aviso.setMensagem(mensagem);
+			listarParaSalvar.add(aviso);
+		}
+		
+		notificacaoBackOfficeRepository.saveAll(listarParaSalvar);
+	}
 		
 	
 	// Envia a notificação de que uma nova O.S apareceu para todo o back office

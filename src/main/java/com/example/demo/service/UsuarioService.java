@@ -78,7 +78,8 @@ public class UsuarioService {
 	
 	// Verifica se há algum usuário pendente
 	public List<Usuario> verificarPendentes() {
-	    List<Usuario> pendentes = usuarioRepository.findByStatus("Aguardando análise");
+	    List<Usuario> pendentes = 
+	    		usuarioRepository.findByStatusOrderByDataHoraCadastroDesc("Aguardando análise");
 	    return preencherCpfMascarado(pendentes);
 	}
     

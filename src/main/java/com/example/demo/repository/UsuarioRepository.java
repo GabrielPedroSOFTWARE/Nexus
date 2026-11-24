@@ -10,7 +10,7 @@ import com.example.demo.model.PerfilUsuario;
 import com.example.demo.model.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, String> {
-	List<Usuario> findByStatus(String status);
+	List<Usuario> findByStatusOrderByDataHoraCadastroDesc(String status);
     UserDetails findByCpf(String cpf);
     List<Usuario> findByCpfNot(String cpf);
     long countByPerfilNot(PerfilUsuario perfil);

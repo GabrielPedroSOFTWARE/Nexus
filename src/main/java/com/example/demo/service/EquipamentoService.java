@@ -1,10 +1,6 @@
 package com.example.demo.service;
 
 import java.time.format.DateTimeFormatter;
-import com.sun.jna.platform.win32.COM.WbemcliUtil.WmiQuery;
-import com.sun.jna.platform.win32.COM.WbemcliUtil.WmiResult;
-import oshi.util.platform.windows.WmiQueryHandler;
-import oshi.util.platform.windows.WmiUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +17,8 @@ import com.example.demo.model.Usuario;
 import com.example.demo.repository.EquipamentoRepository;
 import com.example.demo.repository.PedidoRepository;
 import com.example.demo.repository.UsuarioRepository;
+import com.sun.jna.platform.win32.COM.WbemcliUtil.WmiQuery;
+import com.sun.jna.platform.win32.COM.WbemcliUtil.WmiResult;
 
 import oshi.SystemInfo;
 import oshi.hardware.GraphicsCard;

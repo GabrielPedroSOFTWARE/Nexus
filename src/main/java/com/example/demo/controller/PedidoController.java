@@ -44,20 +44,6 @@ public class PedidoController {
     }
     
     
-    // Cancela a O.S
-    @PatchMapping("/backoffice/cancelar-pedido/{id}")
-    public ResponseEntity<String> cancelarPedido(@PathVariable("id") String id,
-    		@AuthenticationPrincipal Usuario usuario,
-    		@RequestBody String justificativa) {
-    	try {
-            pedidoService.cancelarPedido(id, usuario, justificativa);
-            return ResponseEntity.ok("Pedido cancelado com sucesso");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-    
-    
     // Altera o status da O.S
     @PatchMapping("/backoffice/alterar-status-pedido/{id}")
     public ResponseEntity<String> alterarStatusPedido(@PathVariable("id") String id,

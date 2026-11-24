@@ -83,8 +83,37 @@ public class PedidoService {
 	}
 
 	
-	// Cancela a O.S
-    public void cancelarPedido(String id, Usuario usuario, String justificativa) {
+    // Altera o status da O.S
+    public void alterarStatusPedido(String id, Map<String, String> dados, Usuario usuario) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+
+        int statusAntigo = pedido.getStatus();
+        int statusNovo = Integer.parseInt(dados.get("novoStatusId"));
+        if(statusNovo == 6) {
+        	cancelarPedido(id, usuario, dados.get("justificativa"));
+        	return;
+        }
+        validarAlteracaoStatus(pedido, statusNovo, usuario);
+
+        pedido.setStatus(statusNovo);
+        pedido.registrarMovimentacao();
+        atualizarDatasDoStatus(pedido, statusNovo);
+
+        DescricaoPrazo detalhesNotificacao = 
+        		aplicarDetalhesNotificacaoDoStatus(pedido, statusAntigo, statusNovo, dados);
+        detalhesNotificacao = alterarDetalhesCasoAtraso(pedido, dados, detalhesNotificacao);
+
+        notificacaoUsuarioService.enviarNotificacaoUsuario(
+                pedido.getCpfUsuario(), statusNovo, detalhesNotificacao.prazo, detalhesNotificacao.descricao);
+        historicoPedidoService.registrarAcao(pedido, usuario.getCpf(),
+                "Status: " + status.get(statusAntigo) + " -> " + status.get(statusNovo));
+        pedidoRepository.save(pedido);
+    }
+    
+    
+    // Cancela a O.S
+    private void cancelarPedido(String id, Usuario usuario, String justificativa) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
         
@@ -106,31 +135,6 @@ public class PedidoService {
     }
     
     
-    // Altera o status da O.S
-    public void alterarStatusPedido(String id, Map<String, String> dados, Usuario usuario) {
-        Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
-
-        int statusAntigo = pedido.getStatus();
-        int statusNovo = Integer.parseInt(dados.get("novoStatusId"));
-        validarAlteracaoStatus(pedido, statusNovo, usuario);
-
-        pedido.setStatus(statusNovo);
-        pedido.registrarMovimentacao();
-        atualizarDatasDoStatus(pedido, statusNovo);
-
-        DescricaoPrazo detalhesNotificacao = 
-        		aplicarDetalhesNotificacaoDoStatus(pedido, statusAntigo, statusNovo, dados);
-        detalhesNotificacao = alterarDetalhesCasoAtraso(pedido, dados, detalhesNotificacao);
-
-        notificacaoUsuarioService.enviarNotificacaoUsuario(
-                pedido.getCpfUsuario(), statusNovo, detalhesNotificacao.prazo, detalhesNotificacao.descricao);
-        historicoPedidoService.registrarAcao(pedido, usuario.getCpf(),
-                "Status: " + status.get(statusAntigo) + " -> " + status.get(statusNovo));
-        pedidoRepository.save(pedido);
-    }
-    
-    
     // Valida a alteração do status da O.S
     private void validarAlteracaoStatus(Pedido pedido, int statusNovo, Usuario usuario) {
         if (List.of(5, 6).contains(pedido.getStatus())) {
@@ -144,6 +148,9 @@ public class PedidoService {
         }
         if (statusNovo == 0) {
             throw new RuntimeException("Status só pode voltar para o início ao devolvê-lo à fila");
+        }
+        if(pedido.getStatus() < 4 && statusNovo == 5) {
+        	throw new RuntimeException("Deixe o ativo \"Pronto para entrega\" antes da etapa \"Concluída\"");
         }
     }
 
@@ -167,7 +174,7 @@ public class PedidoService {
             LocalDate prazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
             pedido.setDataFinalManutencao(prazo);
             pedido.setAlertaPrazoEnviado(false);
-            descricao = pedido.getObservacoesTecnico();
+            descricao = "Prazo alterado";
             return new DescricaoPrazo(descricao, prazo);
         } else if (novo == 5) {
             pedido.setObservacoesTecnico(dados.get("observacao"));
@@ -211,6 +218,11 @@ public class PedidoService {
         }
         pedido.setCpfTecnico(novoTecnico.getCpf());
         pedido.registrarMovimentacao();
+        notificacaoBackOfficeService.enviarNotificacaoAtribuicao(
+        		(Usuario) usuarioRepository.findByCpf(pedido.getCpfTecnico()),
+        		novoTecnico,
+        		pedido,
+        		usuario);
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), descricao);
         pedidoRepository.save(pedido);
     }
@@ -256,7 +268,7 @@ public class PedidoService {
     			+ "Justificativa: " + justificativa;
     	
     	notificacaoUsuarioService.enviarNotificacaoUsuario(pedido.getCpfUsuario(), 0, null, alteracao);
-    	
+    	notificacaoBackOfficeService.enviarNotificacaoAtribuicao(null, null, pedido, usuario);
     	historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
     	
     }
