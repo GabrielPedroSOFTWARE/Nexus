@@ -37,15 +37,8 @@ public class UsuarioService {
 	public void cadastrarUsuario(Usuario novoUsuario) {
 		
 		String cpfCriptografado = criptografiaService.criptografar(novoUsuario.getCpf());
-		
-		Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpfCriptografado);
-		
-		if(usuario != null) {
-			if(usuario.getPerfil() == PerfilUsuario.PENDENT) {
-				throw new RuntimeException("Solicitação já enviada, aguarde a aprovação");
-			}
-			throw new RuntimeException("Este CPF já está cadastrado");
-		}
+
+		validarSolicitacaoCadastro(novoUsuario, cpfCriptografado);
 		
 		novoUsuario.setCpf(cpfCriptografado);
 		
@@ -56,6 +49,31 @@ public class UsuarioService {
         
         usuarioRepository.save(novoUsuario);
     }
+	
+	
+	// Valida a solicitação de cadastro
+	private void validarSolicitacaoCadastro(Usuario novoUsuario, String cpfCriptografado) {
+	    if (novoUsuario.isEhAdmin() && usuarioRepository.existsByEhAdminTrue()) {
+	        throw new RuntimeException("Já existe um adm cadastrado");
+	    }
+
+	    boolean cadastroDiretoSuporteOuUsuario = 
+	    		novoUsuario.getPerfil() == PerfilUsuario.SUPPORT_MANAGER
+	            || "Ativo".equals(novoUsuario.getStatus());
+	    
+	    if (cadastroDiretoSuporteOuUsuario && !novoUsuario.isEhAdmin()) {
+	        throw new RuntimeException("Não é permitido se cadastrar diretamente, "
+	                + "faça primeiro uma solicitação de cadastro");
+	    }
+
+	    Usuario existente = (Usuario) usuarioRepository.findByCpf(cpfCriptografado);
+	    if (existente != null) {
+	        String mensagem = existente.getPerfil() == PerfilUsuario.PENDENT
+	                ? "Solicitação já enviada, aguarde a aprovação"
+	                : "Este CPF já está cadastrado";
+	        throw new RuntimeException(mensagem);
+	    }
+	}
     
 	
 	// Verifica se há algum usuário pendente

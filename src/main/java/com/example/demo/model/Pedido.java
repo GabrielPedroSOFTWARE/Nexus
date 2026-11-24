@@ -52,6 +52,7 @@ public class Pedido {
 	private String justificativa;
 	private String justificativaCancelamento;
 	private boolean alertaPrazoEnviado = false;
+	@Transient
 	private boolean estahAtrasada = false;
 	
 	private LocalDateTime ultimaAlteracao;

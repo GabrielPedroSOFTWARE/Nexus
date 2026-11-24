@@ -18,4 +18,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     List<Usuario> findByEhAdminTrueAndStatus(String status);
     Optional<Usuario> findByTokenRecuperacao(String tokenRecuperacao);
     Optional<Usuario> findByCodigoEspera(String codigoEspera);
+    boolean existsByEhAdminTrue();
 }
