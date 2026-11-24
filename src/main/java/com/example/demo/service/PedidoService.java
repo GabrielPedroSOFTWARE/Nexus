@@ -90,10 +90,6 @@ public class PedidoService {
 
         int statusAntigo = pedido.getStatus();
         int statusNovo = Integer.parseInt(dados.get("novoStatusId"));
-        if(statusNovo == 6) {
-        	cancelarPedido(id, usuario, dados.get("justificativa"));
-        	return;
-        }
         validarAlteracaoStatus(pedido, statusNovo, usuario);
 
         pedido.setStatus(statusNovo);
@@ -113,7 +109,7 @@ public class PedidoService {
     
     
     // Cancela a O.S
-    private void cancelarPedido(String id, Usuario usuario, String justificativa) {
+    public void cancelarPedido(String id, Usuario usuario, String justificativa) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
         
