@@ -127,6 +127,8 @@ public class PedidoService {
         
         pedidoRepository.save(pedido);
         String alteracao = "O.S cancelada";
+        notificacaoUsuarioService
+        	.enviarNotificacaoUsuario(pedido.getCpfUsuario(), 6, null, "Sua O.S foi cancelada");
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
     }
     
