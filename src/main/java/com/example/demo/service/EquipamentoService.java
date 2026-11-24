@@ -1,6 +1,10 @@
 package com.example.demo.service;
 
 import java.time.format.DateTimeFormatter;
+import com.sun.jna.platform.win32.COM.WbemcliUtil.WmiQuery;
+import com.sun.jna.platform.win32.COM.WbemcliUtil.WmiResult;
+import oshi.util.platform.windows.WmiQueryHandler;
+import oshi.util.platform.windows.WmiUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +26,8 @@ import oshi.SystemInfo;
 import oshi.hardware.GraphicsCard;
 import oshi.hardware.HWDiskStore;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.util.platform.windows.WmiQueryHandler;
+import oshi.util.platform.windows.WmiUtil;
 
 @Service
 public class EquipamentoService {
@@ -111,22 +117,44 @@ public class EquipamentoService {
 	}
 	
 	
+	private enum TipoSistemaPropriedade {
+	    PCSYSTEMTYPE
+	}
+	
+	
 	// Verifica se é notebook ou não
 	private boolean ehNotebook(HardwareAbstractionLayer hardware) {
-	    if (!hardware.getPowerSources().isEmpty()) {
-	        return true;
-	    }
+	    try {
+	        WmiQuery<TipoSistemaPropriedade> query =
+	                new WmiQuery<>("Win32_ComputerSystem", TipoSistemaPropriedade.class);
+	        WmiResult<TipoSistemaPropriedade> resultado =
+	                WmiQueryHandler.createInstance().queryWMI(query);
+
+	        if (resultado.getResultCount() > 0) {
+	            int tipo = WmiUtil.getUint16(resultado, TipoSistemaPropriedade.PCSYSTEMTYPE, 0);
+	            if (tipo == 2) {
+	                return true;  // Notebook
+	            }
+	            if (tipo == 1 || tipo == 3) {
+	                return false; // Desktop
+	            }
+	        }
+	    } catch (Exception e) {}
 
 	    String modelo = hardware.getComputerSystem().getModel();
 	    if (modelo != null) {
 	        modelo = modelo.toLowerCase();
-	        if (modelo.contains("notebook") || modelo.contains("laptop") 
-	        		|| modelo.contains("book")) {
+	        if (modelo.contains("notebook") || modelo.contains("laptop") || modelo.contains("book")) {
 	            return true;
 	        }
 	    }
 
-	    return false;
+	    return hardware.getPowerSources().stream().anyMatch(fonte -> {
+	        String nome = (fonte.getName() + " " + fonte.getDeviceName()).toLowerCase();
+	        boolean ehNobreak = nome.contains("ups") || nome.contains("nobreak") || nome.contains("hid");
+	        boolean capacidadeDeNotebook = fonte.getDesignCapacity() > 100 || fonte.getMaxCapacity() > 100;
+	        return !ehNobreak && capacidadeDeNotebook;
+	    });
 	}
 	
 	

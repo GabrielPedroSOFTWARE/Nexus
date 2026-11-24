@@ -255,6 +255,8 @@ public class PedidoService {
     	String alteracao = "O.S de volta à fila\n"
     			+ "Justificativa: " + justificativa;
     	
+    	notificacaoUsuarioService.enviarNotificacaoUsuario(pedido.getCpfUsuario(), 0, null, alteracao);
+    	
     	historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
     	
     }
