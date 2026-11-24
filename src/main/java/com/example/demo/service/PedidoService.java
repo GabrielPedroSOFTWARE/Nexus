@@ -172,7 +172,7 @@ public class PedidoService {
             LocalDate prazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
             pedido.setDataFinalManutencao(prazo);
             pedido.setAlertaPrazoEnviado(false);
-            descricao = "Prazo alterado";
+            descricao = (antigo > novo) ? "O.S voltou para fase de diagnóstico" : "Prazo definido";
             return new DescricaoPrazo(descricao, prazo);
         } else if (novo == 5) {
             pedido.setObservacoesTecnico(dados.get("observacao"));

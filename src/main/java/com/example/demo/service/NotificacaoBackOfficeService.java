@@ -172,11 +172,13 @@ public class NotificacaoBackOfficeService {
 		List<NotificacaoBackOffice> listarParaSalvar = new ArrayList<>();
 		String mensagem = "";
 		if(tecnicoAntigo != null && tecnicoNovo != null) {
-			mensagem = "A " + pedido.getId() + " foi reatribuída para o técnico/gestor: " + tecnicoNovo;
+			mensagem = "A " + pedido.getId() + " foi reatribuída para o técnico/gestor: " 
+					+ tecnicoNovo.getNome();
 		} else if(tecnicoAntigo == null && tecnicoNovo == null) {
 			mensagem = "A " + pedido.getId() + " foi devolvida à fila";
 		} else {
-			mensagem = "A " + pedido.getId() + " foi atribuída ao técnico/gestor: " + tecnicoNovo;
+			mensagem = "A " + pedido.getId() + " foi atribuída ao técnico/gestor: " 
+		+ tecnicoNovo.getNome();
 			}
 		
 		for(Usuario backOfficer : backOfficers) {
