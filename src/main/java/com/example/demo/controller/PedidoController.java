@@ -90,6 +90,18 @@ public class PedidoController {
     }
     
     
+    // Retorna os técnicos/gestores ativos
+    @GetMapping("/backoffice/tecnicos-ativos")
+    public ResponseEntity<?> retornarTecnicosAtivos() {
+    	try {
+    		return ResponseEntity.ok(pedidoService.retornarTecnicosAtivos());
+    	} catch(RuntimeException e) {
+    		return ResponseEntity.badRequest().body(e.getMessage());
+    	}
+    }
+    
+    
+    
     // Atribui o técino ao pedido
     @PatchMapping("/backoffice/atribuir-tecnico/{id}")
     public ResponseEntity<String> atribuirTecnico(@PathVariable("id") String id,

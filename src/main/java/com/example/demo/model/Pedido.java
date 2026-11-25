@@ -32,6 +32,8 @@ public class Pedido {
 	private Long idPC;
 	private String cpfUsuario;
 	@Transient
+	private String nomeUsuario;
+	@Transient
 	private String cpfUsuarioDescriptografado;
 	private String apelido;
 	private Integer status;

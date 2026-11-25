@@ -37,6 +37,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     // Verifica o token
     private void verificarToken(String token) {
+    	
         String cpf = tokenService.validarToken(token);
         if (cpf == null) return;
         

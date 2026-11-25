@@ -97,16 +97,16 @@ public class UsuarioService {
 	    usuario.setPerfil(perfilDefinido);
 
 	    usuarioRepository.save(usuario);
-
-	    try {
-	        emailService.enviarEmailSolicitacaoAceita(
-	                usuario.getEmail(),
-	                usuario.getNome(),
-	                perfilDefinido
-	        );
-	    } catch (Exception e) {
-	        System.err.println("Usuário aprovado, mas falhou o envio do e-mail: " + e.getMessage());
-	    }
+//
+//	    try {
+//	        emailService.enviarEmailSolicitacaoAceita(
+//	                usuario.getEmail(),
+//	                usuario.getNome(),
+//	                perfilDefinido
+//	        );
+//	    } catch (Exception e) {
+//	        System.err.println("Usuário aprovado, mas falhou o envio do e-mail: " + e.getMessage());
+//	    }
 	}
     
     
@@ -129,9 +129,9 @@ public class UsuarioService {
 
 	    usuarioRepository.deleteById(cpf);
 
-	    try {
-	        emailService.enviarEmailSolicitacaoNegada(emailDestino, nomeUsuario);
-	    } catch (Exception e) { e.printStackTrace(); }
+//	    try {
+//	        emailService.enviarEmailSolicitacaoNegada(emailDestino, nomeUsuario);
+//	    } catch (Exception e) { e.printStackTrace(); }
 	}
     
     

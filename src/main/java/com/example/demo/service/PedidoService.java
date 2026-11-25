@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,12 +16,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.model.Equipamento;
-import com.example.demo.model.PedidoDetalhesDTO;
 import com.example.demo.model.Pedido;
+import com.example.demo.model.PedidoDetalhesDTO;
+import com.example.demo.model.PerfilUsuario;
+import com.example.demo.model.TecnicosAtivosDTO;
 import com.example.demo.model.Usuario;
 import com.example.demo.repository.EquipamentoRepository;
 import com.example.demo.repository.PedidoRepository;
@@ -257,14 +260,30 @@ public class PedidoService {
     }
     
     
+    // Retorna os técnicos ativos
+    public List<TecnicosAtivosDTO> retornarTecnicosAtivos() {
+    	List<Usuario> tecnicos = 
+        		usuarioRepository.findByPerfilNotAndStatus(PerfilUsuario.USER, "Ativo");
+    	ArrayList<TecnicosAtivosDTO> listaTecnicos = new ArrayList<>();
+    	for(Usuario tecnico : tecnicos) {
+    		String cpfMascarado = criptografiaService.descriptografarEMascarar(tecnico.getCpf());
+    		listaTecnicos.add(
+    				new TecnicosAtivosDTO(tecnico.getCpf(),
+    						cpfMascarado, tecnico.getNome())
+    				);
+    	}
+    	return listaTecnicos;
+    }
+    
+    
     // Atribui um técnico a uma O.S
     public void atribuirTecnico(String id, String cpfTecnico, Usuario usuario) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
-        String cpfLimpo = cpfTecnico.replace("\"", "").trim();
-        validarAtribuicaoTecnico(pedido, cpfLimpo);
+        cpfTecnico = cpfTecnico.replace("\"", "").trim();
+        validarAtribuicaoTecnico(pedido, cpfTecnico);
 
-        Usuario novoTecnico = (Usuario) usuarioRepository.findByCpf(cpfLimpo);
+        Usuario novoTecnico = (Usuario) usuarioRepository.findByCpf(cpfTecnico);
         String descricao = montarDescricaoAtribuicao(pedido.getCpfTecnico(), novoTecnico);
 
         if (pedido.getDataHoraAtribuicaoTecnico() == null) {
@@ -470,6 +489,9 @@ public class PedidoService {
                     && pedido.getDataFinalManutencao().isBefore(LocalDate.now());
 
             pedido.setEstahAtrasada(atrasada);
+            
+            Usuario usuario = (Usuario) usuarioRepository.findByCpf(pedido.getCpfUsuario());
+            pedido.setNomeUsuario(usuario == null ? "teste" : usuario.getNome());
         }
         return pedidos;
     }
