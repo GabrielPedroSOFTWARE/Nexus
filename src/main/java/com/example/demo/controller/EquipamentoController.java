@@ -92,7 +92,7 @@ public class EquipamentoController {
     
     
     // Verifica se há O.S aberta
-    @GetMapping("/nao-existe-pedido-aberto/{idPC}")
+    @GetMapping("/existe-pedido-aberto/{idPC}")
     public ResponseEntity<?> verificarPedidoAberto(@PathVariable("idPC") Long idPC) {
     	boolean pedidoEmAberto = equipamentoService.existePedidoEmAberto(idPC);
     	return ResponseEntity.ok(Map.of("pedidoEmAberto", pedidoEmAberto));
