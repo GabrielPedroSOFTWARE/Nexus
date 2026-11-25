@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,6 +45,11 @@ public class PedidoService {
 			"Concluída", "Cancelada");
 	
 	private DateTimeFormatter formatadorDataHora = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+	
+	private static final Sort ORDEM_PRIORIDADE = Sort.by(
+	        Sort.Order.desc("prioridade"),
+	        Sort.Order.asc("dataHoraAbertura")
+	);
 	
 	
 	
@@ -309,13 +315,13 @@ public class PedidoService {
     
     // Lista as O.Ss por equipamento
     public List<Pedido> listarManutencoesEquipamento(Long id) {
-        List<Pedido> pedidos = pedidoRepository.findByIdPC(id);
+        List<Pedido> pedidos = pedidoRepository.findByIdPC(id, ORDEM_PRIORIDADE);
         return prepararPedidosParaRetorno(pedidos);
     }
 
     // Lista as O.Ss por usuário
     public List<Pedido> listarManutencoesUsuario(Usuario usuarioLogado) {
-        List<Pedido> pedidos = pedidoRepository.findByCpfUsuario(usuarioLogado.getCpf());
+        List<Pedido> pedidos = pedidoRepository.findByCpfUsuario(usuarioLogado.getCpf(), ORDEM_PRIORIDADE);
         return prepararPedidosParaRetorno(pedidos);
     }
 
@@ -323,20 +329,21 @@ public class PedidoService {
     public List<Pedido> listarManutencoesAtribuidas(Usuario usuarioLogado) {
         List<Pedido> pedidos = pedidoRepository.findByCpfTecnicoAndStatusNotIn(
                 usuarioLogado.getCpf(),
-                List.of(5, 6)
+                List.of(5, 6),
+                ORDEM_PRIORIDADE
         );
         return prepararPedidosParaRetorno(pedidos);
     }
 
     // Lista as O.Ss por frequência
     public List<Pedido> listarManutencoesPorFrequencia(int frequencia) {
-        List<Pedido> pedidos = pedidoRepository.findByFrequencia(frequencia);
+        List<Pedido> pedidos = pedidoRepository.findByFrequencia(frequencia, ORDEM_PRIORIDADE);
         return prepararPedidosParaRetorno(pedidos);
     }
 
     // Lista todas as O.Ss
     public List<Pedido> listarTodasAsManutencoes() {
-        List<Pedido> pedidos = pedidoRepository.findAll();
+        List<Pedido> pedidos = pedidoRepository.findAll(ORDEM_PRIORIDADE);
         return prepararPedidosParaRetorno(pedidos);
     }
 

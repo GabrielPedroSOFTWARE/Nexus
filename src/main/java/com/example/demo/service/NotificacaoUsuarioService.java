@@ -39,7 +39,7 @@ public class NotificacaoUsuarioService {
 	// Retorna as notificações do usuário
 	public List<NotificacaoUsuario> retornarNotificacoesUsuario(Usuario usuario) {
 	    List<NotificacaoUsuario> notificacoes = notificacaoRepository
-	            .findByCpfUsuario(usuario.getCpf());
+	            .findByCpfUsuarioOrderByDataHoraCriacaoDesc(usuario.getCpf());
 
 	    String cpfMascarado = criptografiaService.descriptografarEMascarar(usuario.getCpf());
 

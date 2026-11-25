@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,13 +13,13 @@ import com.example.demo.model.Pedido;
 
 
 public interface PedidoRepository extends JpaRepository<Pedido, String>{
-	List<Pedido> findByCpfUsuario(String cpf);
+	List<Pedido> findByCpfUsuario(String cpf, Sort sort);
 	
-	List<Pedido> findByCpfTecnicoAndStatusNotIn(String cpfTecnico, List<Integer> status);
+	List<Pedido> findByCpfTecnicoAndStatusNotIn(String cpfTecnico, List<Integer> status, Sort sort);
 	
-	List<Pedido> findByIdPC(Long idPC);
+	List<Pedido> findByIdPC(Long idPC, Sort sort);
 	
-	List<Pedido> findByFrequencia(Integer frequencia);
+	List<Pedido> findByFrequencia(Integer frequencia, Sort sort);
 	
 	long countByIdPCAndStatusNotAndDataHoraAberturaAfter(
 	        Long idPC,
