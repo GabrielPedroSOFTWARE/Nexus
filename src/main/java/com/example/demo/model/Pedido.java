@@ -64,11 +64,12 @@ public class Pedido {
 	
 	
 	// Preenche os dados iniciais de uma O.S
-	public void definirDadosIniciais(String cpfUsuario, MultipartFile arquivoFoto) 
-	        throws IOException {
+	public void definirDadosIniciais(String cpfUsuario, MultipartFile arquivoFoto) throws IOException {
 	    this.cpfUsuario = cpfUsuario;
 	    this.dataInicioManutencao = LocalDate.now();
+	    this.dataHoraAbertura = LocalDateTime.now();
 	    this.status = 0;
+	    registrarMovimentacao();
 	    anexarFoto(arquivoFoto);
 	}
 

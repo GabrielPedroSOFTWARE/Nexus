@@ -35,7 +35,7 @@ public class Usuario implements UserDetails {
     private String email;
     private String setor;
     private String telefone;
-    private LocalDateTime dataHoraCadastro;
+    private String dataHoraCadastro;
     @Id
     @Column(unique = true)
     private String cpf;

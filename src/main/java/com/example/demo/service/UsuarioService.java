@@ -52,7 +52,7 @@ public class UsuarioService {
         String senhaSegura = encriptador.encode(novoUsuario.getSenha());
         novoUsuario.setSenha(senhaSegura);
         
-        novoUsuario.setDataHoraCadastro(LocalDateTime.now());
+        novoUsuario.setDataHoraCadastro(formatadorDataHora.format(LocalDateTime.now()));
         
         usuarioRepository.save(novoUsuario);
     }
@@ -112,47 +112,53 @@ public class UsuarioService {
 
 	    try {
 	        emailService.enviarEmailSolicitacaoNegada(emailDestino, nomeUsuario);
-	    } catch (Exception e) {
-	        System.err.println("Solicitação negada, mas falhou o envio do e-mail: " + e.getMessage());
-	    }
+	    } catch (Exception e) { e.printStackTrace(); }
 	}
     
     
     // Atualiza múltiplos usuários de uma só vez
-    public void salvarAlteracoesEmLote(List<AtualizacaoUsuarioDTO> alteracoes, Usuario usuarioLogado) {
-        
-        for (AtualizacaoUsuarioDTO dto : alteracoes) {
-            dto.setCpf(dto.getCpf().replaceAll("\\D", ""));
-            
-            Usuario usuarioSelecionado = usuarioRepository.findById(dto.getCpf())
-                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + dto.getCpf()));
-            
-            if(usuarioSelecionado.getPerfil().equals(PerfilUsuario.USER) && dto.getPerfil().equals(PerfilUsuario.USER) 
-            		&& dto.isEhAdmin()) {
-            	throw new RuntimeException("Um Usuário não pode ser Admin");
-            }
-            
-            if(usuarioLogado.getCpf().equals(usuarioSelecionado.getCpf())) {
-            	throw new RuntimeException("Um ADM não pode alterar seu próprio status");
-            }
-            
-            if (usuarioSelecionado.getPerfil() != dto.getPerfil() || usuarioSelecionado.isEhAdmin() != dto.isEhAdmin() 
-            		|| !usuarioSelecionado.getStatus().endsWith(dto.getStatus())) {
-            	if(usuarioSelecionado.getStatus().equals("Inativo")) {
-            		throw new RuntimeException("Um Usuário Inativo não pode ser alterado");
-            	}
-            	usuarioSelecionado.setVersaoToken(usuarioSelecionado.getVersaoToken() + 1);   
-            }
-            
-            salvarHistoricoAlteracoesUsuario(usuarioSelecionado, dto);
-            
-            usuarioSelecionado.setPerfil(dto.getPerfil());
-            usuarioSelecionado.setEhAdmin(dto.isEhAdmin());
-            usuarioSelecionado.setStatus(dto.getStatus());
-            
-            usuarioRepository.save(usuarioSelecionado);
-        }
-    }
+	public void salvarAlteracoesEmLote(List<AtualizacaoUsuarioDTO> alteracoes, Usuario usuarioLogado) {
+	    for (AtualizacaoUsuarioDTO dto : alteracoes) {
+	        dto.setCpf(dto.getCpf().replaceAll("\"", ""));
+	        Usuario usuario = usuarioRepository.findById(dto.getCpf())
+	                .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + dto.getCpf()));
+
+	        boolean alterado = houveAlteracao(usuario, dto);
+	        validarAlteracaoUsuario(usuario, dto, usuarioLogado, alterado);
+	        if (alterado) {
+	            usuario.setVersaoToken(usuario.getVersaoToken() + 1);
+	        }
+
+	        salvarHistoricoAlteracoesUsuario(usuario, dto);
+	        usuario.setPerfil(dto.getPerfil());
+	        usuario.setEhAdmin(dto.isEhAdmin());
+	        usuario.setStatus(dto.getStatus());
+	        usuarioRepository.save(usuario);
+	    }
+	}
+	
+	
+	// Verifica se houve alguma alteração no usuário
+	private boolean houveAlteracao(Usuario usuario, AtualizacaoUsuarioDTO dto) {
+	    return usuario.getPerfil() != dto.getPerfil()
+	            || usuario.isEhAdmin() != dto.isEhAdmin()
+	            || !usuario.getStatus().equals(dto.getStatus());
+	}
+
+	
+	// Valida a alteração do usuário
+	private void validarAlteracaoUsuario(Usuario usuario, AtualizacaoUsuarioDTO dto,
+	        Usuario usuarioLogado, boolean alterado) {
+	    if (dto.getPerfil() == PerfilUsuario.USER && dto.isEhAdmin()) {
+	        throw new RuntimeException("Um Usuário não pode ser Admin");
+	    }
+	    if (usuarioLogado.getCpf().equals(usuario.getCpf())) {
+	        throw new RuntimeException("Um ADM não pode alterar seu próprio status");
+	    }
+	    if (alterado && "Inativo".equals(usuario.getStatus())) {
+	        throw new RuntimeException("Um Usuário Inativo não pode ser alterado");
+	    }
+	}
     
     
     // Salva em um histórico quais status foram alterados
@@ -191,8 +197,7 @@ public class UsuarioService {
     // Recebe o CPF, gera os dois códigos (o do e-mail e o "bipe" da tela) e envia o link
     public String solicitarRecuperacaoSenha(String cpf) {
     	cpf = cpf.replaceAll("\\D", "");
-    	String cpfCriptografado = criptografiaService.criptografar(cpf);
-        Usuario usuario = usuarioRepository.findById(cpfCriptografado)
+        Usuario usuario = usuarioRepository.findById(criptografiaService.criptografar(cpf))
                 .orElseThrow(() -> new RuntimeException("CPF não encontrado no sistema."));
         
         if(usuario.getStatus().equals("Inativo")) {
@@ -202,6 +207,7 @@ public class UsuarioService {
         if(usuario.getStatus().equals("Aguardando análise")) {
         	throw new RuntimeException("Essa conta ainda não foi ativada");
         }
+        
         String tokenEmail = UUID.randomUUID().toString();
         String codigoEspera = UUID.randomUUID().toString();
 

@@ -45,23 +45,6 @@ public class PedidoController {
     }
     
     
-    // Altera uma O.S
-    @PutMapping("/backoffice/alterar-pedido/{id}")
-    public ResponseEntity<String> alterarPedido(
-    		@ModelAttribute Pedido novoPedido, 
-            @RequestParam(value = "arquivoImagem", required = false) MultipartFile arquivoFoto,
-            @AuthenticationPrincipal Usuario usuario,
-            @PathVariable("id") String id
-            ) {
-    	try {
-    		pedidoService.alterarPedido(novoPedido, arquivoFoto, id, usuario);
-    		return ResponseEntity.ok("Pedido alterado com sucesso");
-    	} catch (IOException e) {
-    		return ResponseEntity.badRequest().body("Ocorreu um erro ao processar a imagem");
-    	}
-    }
-    
-    
     // Cancela a O.S
     @PatchMapping("/backoffice/cancelar-pedido/{id}")
     public ResponseEntity<String> cancelarPedido(@PathVariable("id") String id,
@@ -176,10 +159,10 @@ public class PedidoController {
     	return pedidoService.listarManutencoesPorFrequencia(frequencia);
     }
     
-    // Retorna as O.Ss do admin
+    // Retorna todas as O.Ss 
     @GetMapping("/backoffice/listar-pedidos")
-    public List<Pedido> listarManutencoesAdmin () {
-    	return pedidoService.listarManutencoesAdmin();
+    public List<Pedido> listarTodasAsManutencoes () {
+    	return pedidoService.listarTodasAsManutencoes();
     }
 
 }

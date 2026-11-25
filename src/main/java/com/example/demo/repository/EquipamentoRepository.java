@@ -25,7 +25,7 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Long> 
 		       "    SELECT 1 FROM Pedido p " +
 		       "    WHERE p.idPC = e.id AND p.status NOT IN (5, 6)" +
 		       ")")
-	boolean verificarPossivelExclusaoEquipamento(
+	boolean verificarManutencaoEmAberto(
 			@Param("idEquipamento") Long idEquipamento,
 			@Param("cpfUsuario") String cpfUsuario);
 	

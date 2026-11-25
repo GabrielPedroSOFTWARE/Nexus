@@ -90,4 +90,13 @@ public class EquipamentoController {
     	return equipamentoService.retornarDadosEstatisticas();
     }
     
+    
+    // Verifica se há O.S aberta
+    @GetMapping("/nao-existe-pedido-aberto/{idPC}")
+    public ResponseEntity<?> verificarPedidoAberto(@PathVariable("idPC") Long idPC,
+    		@AuthenticationPrincipal Usuario usuario) {
+    	boolean pedidoAberto = equipamentoService.naoExistePedidoEmAberto(idPC, usuario);
+    	return ResponseEntity.ok(Map.of("pedidoAberto", pedidoAberto));
+    }
+    
 }

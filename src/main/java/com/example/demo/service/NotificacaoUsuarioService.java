@@ -41,15 +41,11 @@ public class NotificacaoUsuarioService {
 	    List<NotificacaoUsuario> notificacoes = notificacaoRepository
 	            .findByCpfUsuario(usuario.getCpf());
 
-	    // Se o usuário tiver CPF, destranca e mascara uma única vez
-	    if (usuario.getCpf() != null && !usuario.getCpf().isBlank()) {
-	        String cpfOriginal = criptografiaService.descriptografar(usuario.getCpf());
-	        String cpfMascarado = criptografiaService.descriptografarEMascarar(usuario.getCpf());
+	    String cpfMascarado = criptografiaService.descriptografarEMascarar(usuario.getCpf());
 
-	        for (NotificacaoUsuario notificacao : notificacoes) {
-	            notificacao.setCpfUsuarioDescriptografado(cpfMascarado);
-	        }
-	    }
+        for (NotificacaoUsuario notificacao : notificacoes) {
+            notificacao.setCpfUsuarioDescriptografado(cpfMascarado);
+        }
 
 	    return notificacoes;
 	}

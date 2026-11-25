@@ -151,10 +151,10 @@ public class EquipamentoService {
 	// Remove um equipamento do banco de dados
 	public void removerEquipamento(Long idEquipamento, Usuario usuarioLogado) {
     	String cpfUsuario = usuarioLogado.getCpf();
-    	boolean fazParte = equipamentoRepository
-    			.verificarPossivelExclusaoEquipamento(idEquipamento, cpfUsuario);
+    	boolean naoTemPedidoAberto = equipamentoRepository
+    			.verificarManutencaoEmAberto(idEquipamento, cpfUsuario);
     	
-    	if(!fazParte) {
+    	if(!naoTemPedidoAberto) {
     		throw new RuntimeException("Há uma O.S em aberto para esse equipamento"); 
     	}
     	
@@ -179,27 +179,13 @@ public class EquipamentoService {
 	// Percorre a lista, destranca o CPF e guarda a versão mascarada em cada equipamento
 	private List<Equipamento> preencherCpfMascarado(List<Equipamento> equipamentos) {
 	    for (Equipamento eq : equipamentos) {
-	        if (eq.getCpfUsuario() != null && !eq.getCpfUsuario().isBlank()) {
-	            String cpfOriginal = criptografiaService.descriptografar(eq.getCpfUsuario());
-	            eq.setCpfUsuarioDescriptografado(mascararCpf(cpfOriginal));
-	        }
+	    	eq.setCpfUsuarioDescriptografado(
+	    			criptografiaService.descriptografarEMascarar(eq.getCpfUsuario())
+            		);
 	    }
 	    return equipamentos;
 	}
 
-	// Transforma "12345678900" em "***.456.789-**"
-	private String mascararCpf(String cpfOriginal) {
-	    if (cpfOriginal == null) return null;
-
-	    String numeros = cpfOriginal.replaceAll("\\D", "");
-	    if (numeros.length() != 11) {
-	        return "***.***.***-**";
-	    }
-
-	    return "***." + numeros.substring(3, 6) + "." + numeros.substring(6, 9) + "-**";
-	}
-	
-	
 	// Retorna os dados das estatísticas
 	public Map<String, Long> retornarDadosEstatisticas() {
     	Map<String, Long> dados = new HashMap<String, Long>();
@@ -207,4 +193,11 @@ public class EquipamentoService {
     	dados.put("totalMaquinas", equipamentoRepository.count());
     	return dados;
     }
+	
+	
+	// Verifica se há alguma O.S aberta para o equipamento
+	public boolean naoExistePedidoEmAberto(Long idPC, Usuario usuario) {
+		String cpf = usuario.getCpf();
+		return equipamentoRepository.verificarManutencaoEmAberto(idPC, cpf);
+	}
 }

@@ -61,13 +61,13 @@ public class NotificacaoBackOfficeService {
 	}
 	
 	
-	// Verifica a cada 1 hora se existe uma O.S em que 
-	@Scheduled(fixedRate = 3600000) // Roda a cada 1 hora
+	// Verifica a cada 1 hora se existe uma O.S que está a 72 horas sem funcionar
+	@Scheduled(fixedRate = 3600000)
 	public void verificarPedidosSemAlteracao() {
 	    LocalDateTime agora = LocalDateTime.now();
 	    List<Integer> encerrados = List.of(5, 6);
 
-	    // 1. Passaram +24h após o aviso do técnico (96h no total) -> avisa os ADMs
+	    // +24h após o aviso do técnico -> avisa os ADMs
 	    List<Pedido> paraAdm = pedidoRepository
 	            .buscarPedidosInativos(encerrados, 1, agora.minusHours(96));
 
@@ -76,7 +76,7 @@ public class NotificacaoBackOfficeService {
 	        enviarNotificacaoInatividadeParaAdm(paraAdm, admins);
 	    }
 
-	    // 2. Passaram 72h sem movimentação -> avisa o técnico
+	    // 72h sem nenhuma alteração na O.S -> avisa o técnico
 	    List<Pedido> paraTecnico = pedidoRepository
 	            .buscarPedidosInativos(encerrados, 0, agora.minusHours(72));
 
@@ -92,7 +92,8 @@ public class NotificacaoBackOfficeService {
 	            .findByCpfTecnicoAndLidaFalseOrderByDataCriacaoDesc(backOffice.getCpf());
 
 	    if (!notificacoes.isEmpty()) {
-	        String cpfMascarado = criptografiaService.descriptografarEMascarar(backOffice.getCpf());
+	        String cpfMascarado = 
+	        		criptografiaService.descriptografarEMascarar(backOffice.getCpf());
 
 	        for (NotificacaoBackOffice notificacao : notificacoes) {
 	            notificacao.setCpfTecnicoDescriptografado(cpfMascarado);
