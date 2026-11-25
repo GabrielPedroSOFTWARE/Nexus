@@ -117,8 +117,8 @@ public class PedidoService {
         	throw new RuntimeException("Sem autorização para cancelar a O.S");
         }
         
-        if(pedido.getStatus() == 6) {
-        	throw new RuntimeException("A O.S já foi cancelada");
+        if(List.of(5, 6).contains(pedido.getStatus())) {
+        	throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
         }
         
         pedido.setAlertaPrazoEnviado(true);

@@ -30,7 +30,7 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, Long> 
 			@Param("cpfUsuario") String cpfUsuario);
 	
 	
-	Equipamento findByNumeroSerie(String numeroSerie);
+	Optional<Equipamento> findByNumeroSerie(String numeroSerie);
 	
 	boolean existsByNumeroSerieAndCpfUsuarioNot(String numeroSerie, String cpfUsuario);
 	

@@ -158,18 +158,32 @@ public class EquipamentoService {
 	
 	// Adiciona um novo equipamento ao banco de dados
 	public void adicionarNovoEquipamento(Equipamento enviado, Usuario usuarioLogado) {
-	    String cpf = usuarioLogado.getCpf();
+	    String cpfUsuario = usuarioLogado.getCpf();
 
-	    if (equipamentoRepository.existsByNumeroSerieAndCpfUsuarioNot(enviado.getNumeroSerie(), cpf)) {
-	        throw new RuntimeException("Esse computador já está cadastrado no nome de outro usuário");
+	    Equipamento equipamentoExistente = equipamentoRepository
+	            .findByNumeroSerie(enviado.getNumeroSerie())
+	            .orElse(null);
+
+	    if (equipamentoExistente != null) {
+	        String cpfDonoAtual = equipamentoExistente.getCpfUsuario();
+
+	        // Se já tem dono e NÃO é quem está tentando cadastrar, bloqueia
+	        if (cpfDonoAtual != null && !cpfDonoAtual.equals(cpfUsuario)) {
+	            throw new RuntimeException("Esse computador já está cadastrado no nome de outro usuário");
+	        }
+
+	        // Se estava sem dono (null) ou já era do próprio usuário, reaproveita a mesma ficha
+	        equipamentoRepository.save(equipamentoExistente.atualizarHardware(enviado, cpfUsuario));
+	        return;
 	    }
 
+	    // Se nunca existiu com esse número de série, mantém sua busca antiga ou cria um novo
 	    Equipamento equipamento = equipamentoRepository
 	            .findByCpfUsuarioAndFabricanteAndModeloAndProcessador(
-	                    cpf, enviado.getFabricante(), enviado.getModelo(), enviado.getProcessador())
+	                    cpfUsuario, enviado.getFabricante(), enviado.getModelo(), enviado.getProcessador())
 	            .orElse(enviado);
 
-	    equipamentoRepository.save(equipamento.atualizarHardware(enviado, cpf));
+	    equipamentoRepository.save(equipamento.atualizarHardware(enviado, cpfUsuario));
 	}
 	
 	
@@ -189,8 +203,10 @@ public class EquipamentoService {
     	if(!naoTemPedidoAberto) {
     		throw new RuntimeException("Há uma O.S em aberto para esse equipamento"); 
     	}
-    	
-    	equipamentoRepository.deleteById(idEquipamento);
+    	Equipamento equipamento = equipamentoRepository.findById(idEquipamento)
+    			.orElseThrow(() -> new RuntimeException("Equipamento não encontrado"));
+    	equipamento.setCpfUsuario(null);
+    	equipamentoRepository.save(equipamento);
     }
 	
 	

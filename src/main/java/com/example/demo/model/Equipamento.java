@@ -48,11 +48,11 @@ public class Equipamento {
 	
 	
 	// Atualiza o Hardware
-	public Equipamento atualizarHardware(Equipamento origem, String cpf) {
+	public Equipamento atualizarHardware(Equipamento equipamento, String cpf) {
 	    this.cpfUsuario = cpf;
-	    this.ram = origem.getRam();
-	    this.discos = origem.getDiscos();
-	    this.placasDeVideo = origem.getPlacasDeVideo();
+	    this.ram = equipamento.getRam();
+	    this.discos = equipamento.getDiscos();
+	    this.placasDeVideo = equipamento.getPlacasDeVideo();
 	    return this;
 	}
 	
