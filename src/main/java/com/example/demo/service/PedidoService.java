@@ -7,13 +7,19 @@ import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.model.Equipamento;
+import com.example.demo.model.PedidoDetalhesDTO;
 import com.example.demo.model.Pedido;
 import com.example.demo.model.Usuario;
 import com.example.demo.repository.EquipamentoRepository;
@@ -84,27 +90,91 @@ public class PedidoService {
 
 	
     // Altera o status da O.S
+    @Transactional
     public void alterarStatusPedido(String id, Map<String, String> dados, Usuario usuario) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
         int statusAntigo = pedido.getStatus();
-        int statusNovo = Integer.parseInt(dados.get("novoStatusId"));
+        Map<String, String> valores = dados == null ? Map.of() : dados;
+        String statusInformado = valores.get("novoStatusId");
+        if (statusInformado == null || statusInformado.isBlank()) {
+            throw new RuntimeException("Informe o novo status da O.S.");
+        }
+        int statusNovo = Integer.parseInt(statusInformado);
         validarAlteracaoStatus(pedido, statusNovo, usuario);
+
+        LocalDate prazoAnterior = pedido.getDataFinalManutencao();
+        LocalDate hoje = LocalDate.now();
+        boolean estavaAtrasada = statusEmAberto(statusAntigo)
+                && prazoAnterior != null && prazoAnterior.isBefore(hoje);
+        boolean mudouStatus = statusAntigo != statusNovo;
+        LocalDate prazoNovo = parsePrazo(valores.get("prazo"));
+        String justificativaInformada = valores.get("justificativa");
+        String justificativa = justificativaInformada == null ? "" : justificativaInformada.trim();
+        if (justificativa.length() > 500) {
+            throw new RuntimeException("A justificativa deve ter no máximo 500 caracteres.");
+        }
+        validarAlteracaoPrazo(statusAntigo, statusNovo, prazoAnterior,
+                prazoNovo, estavaAtrasada, mudouStatus, justificativa, hoje);
+
+        boolean prazoMudou = prazoNovo != null && !Objects.equals(prazoAnterior, prazoNovo);
 
         pedido.setStatus(statusNovo);
         pedido.registrarMovimentacao();
         atualizarDatasDoStatus(pedido, statusNovo);
 
-        DescricaoPrazo detalhesNotificacao = 
-        		aplicarDetalhesNotificacaoDoStatus(pedido, statusAntigo, statusNovo, dados);
-        detalhesNotificacao = alterarDetalhesCasoAtraso(pedido, dados, detalhesNotificacao);
+        DescricaoPrazo detalhesNotificacao = aplicarDetalhesNotificacaoDoStatus(
+                pedido, statusAntigo, statusNovo, valores);
+        if (prazoNovo != null) {
+            pedido.setDataFinalManutencao(prazoNovo);
+            pedido.setAlertaPrazoEnviado(false);
+            pedido.setEstahAtrasada(false);
+            detalhesNotificacao = new DescricaoPrazo(
+                    prazoMudou ? "Prazo alterado. Justificativa: " + justificativa
+                            : detalhesNotificacao.descricao(), prazoNovo);
+        }
 
         notificacaoUsuarioService.enviarNotificacaoUsuario(
                 pedido.getCpfUsuario(), statusNovo, detalhesNotificacao.prazo, detalhesNotificacao.descricao);
-        historicoPedidoService.registrarAcao(pedido, usuario.getCpf(),
-                "Status: " + status.get(statusAntigo) + " -> " + status.get(statusNovo));
+        String alteracaoHistorico = "Status: " + status.get(statusAntigo) + " -> " + status.get(statusNovo);
+        if (prazoMudou) {
+            String prazoAnteriorTexto = prazoAnterior == null ? "Não definido" : formatadorDataHora.format(prazoAnterior);
+            alteracaoHistorico += " · Prazo: " + prazoAnteriorTexto + " -> " + formatadorDataHora.format(prazoNovo)
+                    + " · Justificativa: " + justificativa;
+        }
+        historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracaoHistorico);
         pedidoRepository.save(pedido);
+    }
+
+    private void validarAlteracaoPrazo(int statusAntigo, int statusNovo,
+            LocalDate prazoAnterior, LocalDate prazoNovo, boolean estavaAtrasada,
+            boolean mudouStatus, String justificativa, LocalDate hoje) {
+        boolean exigePrazoPelaTransicao = (statusAntigo < 2 && statusNovo == 2)
+                || (statusAntigo > 1 && statusNovo == 1);
+        if (exigePrazoPelaTransicao && prazoNovo == null) {
+            throw new RuntimeException("Informe o prazo da manutenção.");
+        }
+        if (estavaAtrasada && mudouStatus) {
+            if (prazoNovo == null || Objects.equals(prazoAnterior, prazoNovo) || prazoNovo.isBefore(hoje)) {
+                throw new RuntimeException("Informe um novo prazo válido para a O.S. atrasada.");
+            }
+            if (justificativa.isBlank()) {
+                throw new RuntimeException("Informe a justificativa para alterar o prazo.");
+            }
+        }
+        if (prazoNovo != null && !Objects.equals(prazoAnterior, prazoNovo) && justificativa.isBlank()) {
+            throw new RuntimeException("Informe a justificativa para alterar o prazo.");
+        }
+    }
+
+    private boolean statusEmAberto(Integer valor) {
+        return valor != null && valor >= 0 && valor <= 4;
+    }
+
+    private LocalDate parsePrazo(String valor) {
+        if (valor == null || valor.isBlank()) return null;
+        return LocalDate.parse(valor.trim(), formatadorDataHora);
     }
     
     
@@ -135,6 +205,9 @@ public class PedidoService {
     
     // Valida a alteração do status da O.S
     private void validarAlteracaoStatus(Pedido pedido, int statusNovo, Usuario usuario) {
+        if (statusNovo < 0 || statusNovo >= status.size()) {
+            throw new RuntimeException("O status informado é inválido.");
+        }
         if (List.of(5, 6).contains(pedido.getStatus())) {
             throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
         }
@@ -169,9 +242,7 @@ public class PedidoService {
             pedido.setObservacoesTecnico(dados.get("observacao"));
             descricao = dados.get("observacao");
         } else if ((antigo < 2 && novo == 2) || (antigo > 1 && novo == 1)) {
-            LocalDate prazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
-            pedido.setDataFinalManutencao(prazo);
-            pedido.setAlertaPrazoEnviado(false);
+            LocalDate prazo = parsePrazo(dados.get("prazo"));
             descricao = (antigo > novo) ? "O.S voltou para fase de diagnóstico" : "Prazo definido";
             return new DescricaoPrazo(descricao, prazo);
         } else if (novo == 5) {
@@ -183,21 +254,6 @@ public class PedidoService {
             descricao = "Justificativa para retornar operação: " + dados.get("justificativa");
         }
         return new DescricaoPrazo(descricao, null);
-    }
-    
-    
-    // Se a O.S estava atrasada, registra o novo prazo e usa a justificativa na notificação
-    private DescricaoPrazo alterarDetalhesCasoAtraso(Pedido pedido, Map<String, String> dados,
-            DescricaoPrazo detalhes) {
-        boolean atrasada = pedido.getDataFinalManutencao() != null
-                && pedido.getDataFinalManutencao().isBefore(LocalDate.now());
-        if (!atrasada) return detalhes;
-
-        LocalDate novoPrazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
-        pedido.setDataFinalManutencao(novoPrazo);
-        pedido.setAlertaPrazoEnviado(false);
-        pedido.setEstahAtrasada(false);
-        return new DescricaoPrazo(dados.get("justificativa"), novoPrazo);
     }
     
     
@@ -248,12 +304,26 @@ public class PedidoService {
     
     
     // Devolve a O.S para a fila
+    @Transactional
     public void devolverParaAFila(String id, Usuario usuario, String justificativa) {
     	Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
     	
     	if(List.of(5, 6).contains(pedido.getStatus())) {
 			throw new RuntimeException("A O.S já foi " + status.get(pedido.getStatus()));
+		}
+		if (pedido.getCpfTecnico() == null) {
+			throw new RuntimeException("A O.S não possui técnico responsável.");
+		}
+		if (!usuario.isEhAdmin() && !usuario.getCpf().equals(pedido.getCpfTecnico())) {
+			throw new RuntimeException("Sem autorização para devolver esta O.S à fila.");
+		}
+		String justificativaNormalizada = justificativa == null ? "" : justificativa.trim();
+		if (justificativaNormalizada.isBlank()) {
+			throw new RuntimeException("Informe a justificativa para devolver a O.S à fila.");
+		}
+		if (justificativaNormalizada.length() > 500) {
+			throw new RuntimeException("A justificativa deve ter no máximo 500 caracteres.");
 		}
     	
     	pedido.setCpfTecnico(null);
@@ -263,12 +333,36 @@ public class PedidoService {
     	pedido.registrarMovimentacao();
     	
     	String alteracao = "O.S de volta à fila\n"
-    			+ "Justificativa: " + justificativa;
+				+ "Justificativa: " + justificativaNormalizada;
+		pedidoRepository.save(pedido);
     	
     	notificacaoUsuarioService.enviarNotificacaoUsuario(pedido.getCpfUsuario(), 0, null, alteracao);
     	notificacaoBackOfficeService.enviarNotificacaoAtribuicao(null, null, pedido, usuario);
     	historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracao);
     	
+    }
+
+    @Transactional(readOnly = true)
+    public PedidoDetalhesDTO obterDetalhesPedido(String id) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "O.S. não encontrada."));
+
+        Usuario solicitante = usuarioRepository.findByCpf(pedido.getCpfUsuario()) instanceof Usuario usuarioEncontrado
+                ? usuarioEncontrado : null;
+        Equipamento equipamento = pedido.getIdPC() == null ? null
+                : equipamentoRepository.findById(pedido.getIdPC()).orElse(null);
+
+        PedidoDetalhesDTO.Solicitante solicitanteDto = solicitante == null ? null
+                : new PedidoDetalhesDTO.Solicitante(
+                        solicitante.getNome(), solicitante.getSetor(), solicitante.getTelefone(),
+                        criptografiaService.descriptografarEMascarar(solicitante.getCpf()));
+        PedidoDetalhesDTO.Equipamento equipamentoDto = equipamento == null ? null
+                : new PedidoDetalhesDTO.Equipamento(
+                        equipamento.getId(), equipamento.getNumeroSerie(), equipamento.getFabricante(),
+                        equipamento.getModelo(), equipamento.getProcessador(), equipamento.getRam(),
+                        equipamento.getPlacasDeVideo(), equipamento.getDiscos(),
+                        equipamento.getSistemaOperacional(), equipamento.isEhNotebook());
+        return new PedidoDetalhesDTO(solicitanteDto, equipamentoDto);
     }
     
     

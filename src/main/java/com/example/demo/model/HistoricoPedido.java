@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,5 +39,6 @@ public class HistoricoPedido {
 	private String descricao;
 	private String observacoesTecnico;
 	private String justificativaCancelamento;
+	@Column(length = 1024)
 	private String alteracao;
 }

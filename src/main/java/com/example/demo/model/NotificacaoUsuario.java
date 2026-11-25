@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,6 +25,7 @@ public class NotificacaoUsuario {
     @Transient
     private String cpfUsuarioDescriptografado;
     private Integer status;
+    @Column(length = 1024)
     private String descrição;
     private LocalDate prazo;
     

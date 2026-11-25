@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.Pedido;
+import com.example.demo.model.PedidoDetalhesDTO;
 import com.example.demo.model.Usuario;
 import com.example.demo.service.PedidoService;
 
@@ -162,6 +163,13 @@ public class PedidoController {
     @GetMapping("/backoffice/listar-pedidos")
     public List<Pedido> listarTodasAsManutencoes () {
     	return pedidoService.listarTodasAsManutencoes();
+    }
+
+
+    // Retorna os dados do solicitante e do equipamento vinculados à O.S
+    @GetMapping("/backoffice/pedidos/{id}/detalhes")
+    public ResponseEntity<PedidoDetalhesDTO> retornarDetalhesPedido(@PathVariable("id") String id) {
+        return ResponseEntity.ok(pedidoService.obterDetalhesPedido(id));
     }
 
 }
