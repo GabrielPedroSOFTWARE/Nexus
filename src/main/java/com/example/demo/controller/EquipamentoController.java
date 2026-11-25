@@ -95,8 +95,8 @@ public class EquipamentoController {
     @GetMapping("/nao-existe-pedido-aberto/{idPC}")
     public ResponseEntity<?> verificarPedidoAberto(@PathVariable("idPC") Long idPC,
     		@AuthenticationPrincipal Usuario usuario) {
-    	boolean pedidoAberto = equipamentoService.naoExistePedidoEmAberto(idPC, usuario);
-    	return ResponseEntity.ok(Map.of("pedidoAberto", pedidoAberto));
+    	boolean semPedidoAberto = equipamentoService.naoExistePedidoEmAberto(idPC, usuario);
+    	return ResponseEntity.ok(Map.of("semPedidoAberto", semPedidoAberto));
     }
     
 }
