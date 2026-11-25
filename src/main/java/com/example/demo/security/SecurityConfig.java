@@ -39,7 +39,7 @@ public class SecurityConfig {
                     req.requestMatchers("/confirmar-recuperacao").permitAll();
                     req.requestMatchers("/status-recuperacao").permitAll();
                     req.requestMatchers("/redefinir-senha").permitAll();
-                    req.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN");
+                    req.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN", "SUPPORT_MANAGER");
                     req.requestMatchers("/backoffice/**").hasAnyRole("ADMIN", "SUPPORT_MANAGER");
                     req.requestMatchers("/adm/**").hasRole("ADMIN");
                     req.anyRequest().authenticated();

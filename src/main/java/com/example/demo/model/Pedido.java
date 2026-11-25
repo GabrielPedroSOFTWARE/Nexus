@@ -49,6 +49,7 @@ public class Pedido {
 	private String justificativa;
 	private String justificativaCancelamento;
 	private boolean alertaPrazoEnviado = false;
+	private boolean estahAtrasada = false;
 	
 	private LocalDateTime ultimaAlteracao;
 	private int nivelAlertaInatividade = 0;

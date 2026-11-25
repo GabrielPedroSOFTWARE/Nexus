@@ -56,11 +56,13 @@ public class NotificacaoUsuarioService {
 	
 	
 	// Envia a notificação de alteração do status para o usuário
-	public void enviarNotificacaoUsuario(String cpfUsuario, int status, LocalDate prazo) {
+	public void enviarNotificacaoUsuario(String cpfUsuario, int status, LocalDate prazo,
+			String descricao) {
 	    NotificacaoUsuario aviso = new NotificacaoUsuario();
 	    aviso.setCpfUsuario(cpfUsuario);
 	    aviso.setStatus(status);
 	    if(prazo != null) aviso.setPrazo(prazo);
+	    if(descricao != null) aviso.setDescrição(descricao);
 	    notificacaoRepository.save(aviso);
 	}
 }

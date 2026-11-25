@@ -139,7 +139,9 @@ public class PedidoService {
         validarAlteracaoStatus(pedido, statusNovo, usuario);
 
         pedido.setStatus(statusNovo);
-        LocalDate novoPrazo = aplicarDetalhesDoStatus(pedido, statusAntigo, statusNovo, dados);
+        DescricaoPrazo dadosDetalhesStatus = 
+        		aplicarDetalhesDoStatus(pedido, statusAntigo, statusNovo, dados); 
+        LocalDate novoPrazo = dadosDetalhesStatus.prazo;
         if(novoPrazo != null) pedido.setAlertaPrazoEnviado(false);
         pedido.registrarMovimentacao();
         
@@ -150,7 +152,16 @@ public class PedidoService {
             pedido.setDataHoraProntaRetirada(null);
         }
         
-        notificacaoUsuarioService.enviarNotificacaoUsuario(pedido.getCpfUsuario(), statusNovo, novoPrazo);
+        String descricao = dadosDetalhesStatus.descricao;
+        
+        if(pedido.isEstahAtrasada()) {
+        	pedido.setDataFinalManutencao(LocalDate.parse(dados.get("prazo"), formatadorDataHora));
+        	descricao = dados.get("justificativa");
+        	pedido.setEstahAtrasada(false);
+        }
+        
+        notificacaoUsuarioService
+        	.enviarNotificacaoUsuario(pedido.getCpfUsuario(), statusNovo, novoPrazo, descricao);
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(),
                 "Status: " + status.get(statusAntigo) + " -> " + status.get(statusNovo));
         pedidoRepository.save(pedido);
@@ -175,22 +186,27 @@ public class PedidoService {
 
     
     // Aplica os detalhes para cada mudança de status
-    private LocalDate aplicarDetalhesDoStatus(Pedido pedido, int antigo, int novo,
+    private DescricaoPrazo aplicarDetalhesDoStatus(Pedido pedido, int antigo, int novo,
     		Map<String, String> dados) {
+    	String descricao = "";
         if (antigo == 0 && novo == 1) {
             pedido.setObservacoesTecnico(dados.get("observacao"));
+            descricao = dados.get("observacao");
         } else if ((antigo < 2 && novo == 2) || (antigo > 1 && novo == 1)) {
             LocalDate prazo = LocalDate.parse(dados.get("prazo"), formatadorDataHora);
             pedido.setDataFinalManutencao(prazo);
             pedido.setAlertaPrazoEnviado(false);
-            return prazo;
+            descricao = pedido.getObservacoesTecnico();
+            return new DescricaoPrazo(descricao, prazo);
         } else if (novo == 5) {
             pedido.setObservacoesTecnico(dados.get("observacao"));
             pedido.setDescricao(dados.get("descricao"));
+            descricao = dados.get("descricao");
         } else if (antigo > novo) {
             pedido.setJustificativa(dados.get("justificativa"));
+            descricao = "Justificativa para retornar operação: " + dados.get("justificativa");
         }
-        return null;
+        return new DescricaoPrazo(descricao, null);
     }
     
     
@@ -303,16 +319,16 @@ public class PedidoService {
     }
     
     
- // Lista as O.Ss por equipamento
+    // Lista as O.Ss por equipamento
     public List<Pedido> listarManutencoesEquipamento(Long id) {
         List<Pedido> pedidos = pedidoRepository.findByIdPC(id);
-        return preencherCpfsMascarados(pedidos);
+        return prepararPedidosParaRetorno(pedidos);
     }
 
     // Lista as O.Ss por usuário
     public List<Pedido> listarManutencoesUsuario(Usuario usuarioLogado) {
         List<Pedido> pedidos = pedidoRepository.findByCpfUsuario(usuarioLogado.getCpf());
-        return preencherCpfsMascarados(pedidos);
+        return prepararPedidosParaRetorno(pedidos);
     }
 
     // Lista as O.Ss por técnico
@@ -321,23 +337,23 @@ public class PedidoService {
                 usuarioLogado.getCpf(),
                 List.of(5, 6)
         );
-        return preencherCpfsMascarados(pedidos);
+        return prepararPedidosParaRetorno(pedidos);
     }
 
     // Lista as O.Ss por frequência
     public List<Pedido> listarManutencoesPorFrequencia(int frequencia) {
         List<Pedido> pedidos = pedidoRepository.findByFrequencia(frequencia);
-        return preencherCpfsMascarados(pedidos);
+        return prepararPedidosParaRetorno(pedidos);
     }
 
     // Lista todas as O.Ss
     public List<Pedido> listarManutencoesAdmin() {
         List<Pedido> pedidos = pedidoRepository.findAll();
-        return preencherCpfsMascarados(pedidos);
+        return prepararPedidosParaRetorno(pedidos);
     }
 
     // Método auxiliar que percorre qualquer lista de pedidos e mascara os dois CPFs
-    private List<Pedido> preencherCpfsMascarados(List<Pedido> pedidos) {
+    private List<Pedido> prepararPedidosParaRetorno(List<Pedido> pedidos) {
         for (Pedido pedido : pedidos) {
             pedido.setCpfUsuarioDescriptografado(
                     criptografiaService.descriptografarEMascarar(pedido.getCpfUsuario())
@@ -345,8 +361,16 @@ public class PedidoService {
             pedido.setCpfTecnicoDescriptografado(
                     criptografiaService.descriptografarEMascarar(pedido.getCpfTecnico())
             );
+            boolean emAberto = pedido.getStatus() == null
+                    || (pedido.getStatus() != 5 && pedido.getStatus() != 6);
+
+            boolean atrasada = emAberto
+                    && pedido.getDataFinalManutencao() != null
+                    && pedido.getDataFinalManutencao().isBefore(LocalDate.now());
+
+            pedido.setEstahAtrasada(atrasada);
         }
         return pedidos;
     }
-    
+    public record DescricaoPrazo(String descricao, LocalDate prazo) {}
 }

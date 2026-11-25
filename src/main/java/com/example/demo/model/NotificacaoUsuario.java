@@ -20,7 +20,7 @@ public class NotificacaoUsuario {
     private String cpfUsuario;
     private String cpfUsuarioDescriptografado;
     private Integer status;
-    private String resumo;
+    private String descrição;
     private LocalDate prazo;
     
     private boolean lida = false; 
