@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +19,7 @@ public class NotificacaoUsuario {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String cpfUsuario;
+    @Transient
     private String cpfUsuarioDescriptografado;
     private Integer status;
     private String descrição;

@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,6 +32,7 @@ public class Equipamento {
 	private Long id;
 	private String numeroSerie;
 	private String cpfUsuario;
+	@Transient
 	private String cpfUsuarioDescriptografado;
 	private String fabricante;
 	private String modelo;

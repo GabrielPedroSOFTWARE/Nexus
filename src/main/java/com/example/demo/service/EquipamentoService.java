@@ -114,7 +114,8 @@ public class EquipamentoService {
 	    String modelo = hardware.getComputerSystem().getModel();
 	    if (modelo != null) {
 	        modelo = modelo.toLowerCase();
-	        if (modelo.contains("notebook") || modelo.contains("laptop") || modelo.contains("book")) {
+	        if (modelo.contains("notebook") || modelo.contains("laptop") 
+	        		|| modelo.contains("book")) {
 	            return true;
 	        }
 	    }

@@ -17,6 +17,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,6 +39,7 @@ public class Usuario implements UserDetails {
     @Id
     @Column(unique = true)
     private String cpf;
+    @Transient
     private String cpfDescriptografado;
     private String senha;
     private String justificativa;

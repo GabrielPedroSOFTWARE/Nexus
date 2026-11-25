@@ -50,10 +50,10 @@ public class HistoricoPedidoService {
                 .findByIdPedidoOrderByDataHoraDesc(idPedido);
 
         for (HistoricoPedido historico : historicos) {
-            // Troque "CpfUsuario" pelo nome exato do campo na sua classe HistoricoPedido
-            // (ex: getCpfResponsavel / setCpfResponsavelDescriptografado)
-            if (historico.getCpfUsuarioAutor() != null && !historico.getCpfUsuarioAutor().isBlank()) {
-                String cpfOriginal = criptografiaService.descriptografar(historico.getCpfUsuarioAutor());
+            if (historico.getCpfUsuarioAutor() != null 
+            		&& !historico.getCpfUsuarioAutor().isBlank()) {
+                String cpfOriginal 
+                	= criptografiaService.descriptografar(historico.getCpfUsuarioAutor());
                 historico.setCpfUsuarioAutorDescriptografado(mascararCpf(cpfOriginal));
             }
         }

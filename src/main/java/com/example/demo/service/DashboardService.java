@@ -61,11 +61,10 @@ public class DashboardService {
         List<PontoGraficoDTO> pontos = new ArrayList<>();
         for (int m = 1; m <= limite.getMonthValue(); m++) {
             int mesAtual = m;
-            List<Pedido> concluidasNoMes = pedidosDoPeriodo.stream()
-                    .filter(p -> p.getDataHoraConclusao().getMonthValue() == mesAtual)
-                    .toList();
 
-            Long mttrMinutos = calcularMttrMinutos(concluidasNoMes);
+            Long mttrMinutos = calcularMttrMinutos(pedidosDoPeriodo.stream()
+                    .filter(p -> p.getDataHoraConclusao().getMonthValue() == mesAtual)
+                    .toList());
             Double mttrHoras = mttrMinutos != null ? arredondar(mttrMinutos / 60.0) : 0.0;
 
             pontos.add(new PontoGraficoDTO(formatarMesCurto(limite.getYear(), m), mttrHoras));

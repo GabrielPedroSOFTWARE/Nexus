@@ -9,6 +9,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,6 +31,7 @@ public class Pedido {
 	private LocalDateTime dataHoraConclusao;
 	private Long idPC;
 	private String cpfUsuario;
+	@Transient
 	private String cpfUsuarioDescriptografado;
 	private String apelido;
 	private Integer status;
@@ -39,6 +41,7 @@ public class Pedido {
 	private LocalDate dataInicioManutencao;
 	private LocalDate dataFinalManutencao;
 	private String cpfTecnico;
+	@Transient
 	private String cpfTecnicoDescriptografado;
 	@Lob
     private byte[] foto;

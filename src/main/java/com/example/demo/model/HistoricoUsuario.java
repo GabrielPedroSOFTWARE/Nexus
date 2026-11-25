@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,7 @@ public class HistoricoUsuario {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String cpfUsuario;
+    @Transient
     private String cpfUsuarioDescriptografado;
     private String descricaoAlteracao;
     private LocalDateTime dataHoraAlteracao;
