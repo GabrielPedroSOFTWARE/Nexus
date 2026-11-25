@@ -101,8 +101,7 @@ public class EquipamentoController {
     
     // Retorna última manutenção
     @GetMapping("/retornar-ultima-manutencao/{idPC}")
-    public ResponseEntity<?> retornarUltimaManutencao(@PathVariable("idPC") Long idPC,
-    		@AuthenticationPrincipal Usuario usuario) {
+    public ResponseEntity<?> retornarUltimaManutencao(@PathVariable("idPC") Long idPC) {
     	String ultimaManutencao = equipamentoService.retornarUltimaManutencao(idPC);
     	return ResponseEntity.ok(Map.of("ultimaManutencao", ultimaManutencao));
     }
