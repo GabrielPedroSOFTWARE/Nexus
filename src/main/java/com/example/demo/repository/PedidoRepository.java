@@ -2,6 +2,7 @@ package com.example.demo.repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -49,4 +50,6 @@ public interface PedidoRepository extends JpaRepository<Pedido, String>{
 	        LocalDateTime inicio,
 	        LocalDateTime fim
 	);
+	boolean existsByIdPCAndStatusNotIn(Long idPC, List<Integer> statusFinalizados);
+	Optional<Pedido> findFirstByIdPCAndDataHoraConclusaoIsNotNullOrderByDataHoraConclusaoDesc(Long idPC);
 }

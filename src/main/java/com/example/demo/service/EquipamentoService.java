@@ -1,17 +1,21 @@
 package com.example.demo.service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.model.Equipamento;
+import com.example.demo.model.Pedido;
 import com.example.demo.model.PerfilUsuario;
 import com.example.demo.model.Usuario;
 import com.example.demo.repository.EquipamentoRepository;
+import com.example.demo.repository.PedidoRepository;
 import com.example.demo.repository.UsuarioRepository;
 
 import oshi.SystemInfo;
@@ -28,6 +32,8 @@ public class EquipamentoService {
 	private EquipamentoRepository equipamentoRepository;
 	@Autowired
 	private CriptografiaCpfService criptografiaService;
+	@Autowired
+	private PedidoRepository pedidoRepository;
 
 	
 	// Gera o relatório do pc escaneado
@@ -196,8 +202,26 @@ public class EquipamentoService {
 	
 	
 	// Verifica se há alguma O.S aberta para o equipamento
-	public boolean naoExistePedidoEmAberto(Long idPC, Usuario usuario) {
-		String cpf = usuario.getCpf();
-		return equipamentoRepository.verificarManutencaoEmAberto(idPC, cpf);
+	public boolean existePedidoEmAberto(Long idPC) {
+		return pedidoRepository.existsByIdPCAndStatusNotIn(idPC, List.of(5, 6));
+	}
+	
+	
+	// Retorna a data da última manutenção concluída do PC
+	public String retornarUltimaManutencao(Long idPC) {
+	    boolean estaEmManutencao = pedidoRepository.existsByIdPCAndStatusNotIn(idPC, List.of(5, 6));
+	    if (estaEmManutencao) {
+	        return "Em manutenção";
+	    }
+
+	    Optional<Pedido> ultimoPedido = pedidoRepository
+	            .findFirstByIdPCAndDataHoraConclusaoIsNotNullOrderByDataHoraConclusaoDesc(idPC);
+
+	    if (ultimoPedido.isEmpty()) {
+	        return "—";
+	    }
+
+	    DateTimeFormatter formatoBr = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+	    return ultimoPedido.get().getDataHoraConclusao().format(formatoBr);
 	}
 }

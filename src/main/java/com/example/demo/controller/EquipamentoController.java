@@ -93,10 +93,17 @@ public class EquipamentoController {
     
     // Verifica se há O.S aberta
     @GetMapping("/nao-existe-pedido-aberto/{idPC}")
-    public ResponseEntity<?> verificarPedidoAberto(@PathVariable("idPC") Long idPC,
-    		@AuthenticationPrincipal Usuario usuario) {
-    	boolean semPedidoAberto = equipamentoService.naoExistePedidoEmAberto(idPC, usuario);
-    	return ResponseEntity.ok(Map.of("semPedidoAberto", semPedidoAberto));
+    public ResponseEntity<?> verificarPedidoAberto(@PathVariable("idPC") Long idPC) {
+    	boolean pedidoEmAberto = equipamentoService.existePedidoEmAberto(idPC);
+    	return ResponseEntity.ok(Map.of("pedidoEmAberto", pedidoEmAberto));
     }
     
+    
+    // Retorna última manutenção
+    @GetMapping("/retornar-ultima-manutencao/{idPC}")
+    public ResponseEntity<?> retornarUltimaManutencao(@PathVariable("idPC") Long idPC,
+    		@AuthenticationPrincipal Usuario usuario) {
+    	String ultimaManutencao = equipamentoService.retornarUltimaManutencao(idPC);
+    	return ResponseEntity.ok(Map.of("ultimaManutencao", ultimaManutencao));
+    }
 }
