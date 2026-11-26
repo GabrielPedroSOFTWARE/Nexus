@@ -44,6 +44,8 @@ public class Pedido {
 	private LocalDate dataFinalManutencao;
 	private String cpfTecnico;
 	@Transient
+	private String nomeTecnico;
+	@Transient
 	private String cpfTecnicoDescriptografado;
 	@Lob
     private byte[] foto;

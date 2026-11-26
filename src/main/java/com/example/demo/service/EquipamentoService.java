@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,10 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.model.Equipamento;
+import com.example.demo.model.HistoricoUsuario;
 import com.example.demo.model.Pedido;
 import com.example.demo.model.PerfilUsuario;
 import com.example.demo.model.Usuario;
 import com.example.demo.repository.EquipamentoRepository;
+import com.example.demo.repository.HistoricoUsuarioRepository;
 import com.example.demo.repository.PedidoRepository;
 import com.example.demo.repository.UsuarioRepository;
 import com.sun.jna.platform.win32.COM.WbemcliUtil.WmiQuery;
@@ -38,6 +41,8 @@ public class EquipamentoService {
 	private CriptografiaCpfService criptografiaService;
 	@Autowired
 	private PedidoRepository pedidoRepository;
+	@Autowired
+	private HistoricoUsuarioRepository historicoUsuarioRepository;
 
 	
 	// Gera o relatório do pc escaneado
@@ -195,19 +200,46 @@ public class EquipamentoService {
 	
 	
 	// Remove um equipamento do banco de dados
-	public void removerEquipamento(Long idEquipamento, Usuario usuarioLogado) {
+	public void removerEquipamento(Long idEquipamento, Usuario usuarioLogado, String motivo) {
+		Equipamento equipamento = equipamentoRepository.findById(idEquipamento)
+    			.orElseThrow(() -> new RuntimeException("Equipamento não encontrado"));
+		
     	String cpfUsuario = usuarioLogado.getCpf();
+    	
+    	Usuario usuarioProprietario = 
+				(Usuario) usuarioRepository.findByCpf(equipamento.getCpfUsuario());
+    	
     	boolean naoTemPedidoAberto = equipamentoRepository
-    			.verificarManutencaoEmAberto(idEquipamento, cpfUsuario);
+    			.verificarManutencaoEmAberto(idEquipamento, usuarioProprietario.getCpf());
     	
     	if(!naoTemPedidoAberto) {
     		throw new RuntimeException("Há uma O.S em aberto para esse equipamento"); 
     	}
-    	Equipamento equipamento = equipamentoRepository.findById(idEquipamento)
-    			.orElseThrow(() -> new RuntimeException("Equipamento não encontrado"));
+    	
+    	String alteracao = "O usuário " + usuarioLogado.getNome() 
+    	+ " desvinculou o ativo PC-" + equipamento.getId() + " de sua conta";
+    	if(usuarioLogado.isEhAdmin()) {
+    		
+    		alteracao = "O ADM " + usuarioLogado.getNome() 
+    		+ " desvinculou o ativo PC-" + equipamento.getId() 
+    		+ " da conta do usuário: " + usuarioProprietario.getNome() 
+    		+ "\nMotivo: " + motivo;
+    	}
+    	HistoricoUsuario historico = new HistoricoUsuario();
+    	historico.setCpfUsuario(cpfUsuario);
+    	historico.setDataHoraAlteracao(LocalDateTime.now());
+    	historico.setDescricaoAlteracao(alteracao);
+    	historicoUsuarioRepository.save(historico);
     	equipamento.setCpfUsuario(null);
     	equipamentoRepository.save(equipamento);
     }
+	
+	
+	// Retorna os equipamentos por usuário
+	public List<Equipamento> retornarEquipamentosPorUsuario(String cpfUsuario) {
+		cpfUsuario = cpfUsuario.replace("\"", "");
+		return equipamentoRepository.findByCpfUsuario(cpfUsuario);
+	}
 	
 	
 	// Retorna os equipamentos que podem receber uma O.S

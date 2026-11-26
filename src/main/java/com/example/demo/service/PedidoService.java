@@ -223,6 +223,9 @@ public class PedidoService {
         if (statusNovo == 0) {
             throw new RuntimeException("Status só pode voltar para o início ao devolvê-lo à fila");
         }
+        if(pedido.getStatus() < 2 && List.of(5, 6).contains(statusNovo )) {
+        	throw new RuntimeException("Vá para a parte de manutenção primeiro");
+        }
         if(pedido.getStatus() < 4 && statusNovo == 5) {
         	throw new RuntimeException("Deixe o ativo \"Pronto para entrega\" antes da etapa \"Concluída\"");
         }
@@ -491,7 +494,10 @@ public class PedidoService {
             pedido.setEstahAtrasada(atrasada);
             
             Usuario usuario = (Usuario) usuarioRepository.findByCpf(pedido.getCpfUsuario());
-            pedido.setNomeUsuario(usuario == null ? "teste" : usuario.getNome());
+            pedido.setNomeUsuario(usuario == null ? "" : usuario.getNome());
+            
+            Usuario tecnico = (Usuario) usuarioRepository.findByCpf(pedido.getCpfTecnico());
+            pedido.setNomeTecnico(tecnico == null ? "Atribuído" : tecnico.getNome());
         }
         return pedidos;
     }

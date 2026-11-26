@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.Equipamento;
@@ -58,15 +59,22 @@ public class EquipamentoController {
     // Remove o equipamento pela id
     @DeleteMapping("/user/remover-equipamento/{id}")
     public ResponseEntity<String> removerEquipamento(@PathVariable("id") Long idEquipamento,
-    		@AuthenticationPrincipal Usuario usuarioLogado) {
+    		@AuthenticationPrincipal Usuario usuarioLogado,
+    		@RequestBody String motivo) {
     	try {
-    		
-    		equipamentoService.removerEquipamento(idEquipamento, usuarioLogado);
+    		equipamentoService.removerEquipamento(idEquipamento, usuarioLogado, motivo);
     		return ResponseEntity.ok("Peça deletada");
     		
     	} catch (RuntimeException e) {
     		return ResponseEntity.badRequest().body(e.getMessage());
     	}
+    }
+    
+    // Retorna os equipamentos por usuário
+    @GetMapping("/adm/equipamentos-por-usuario")
+    public List<Equipamento> retornarEquipamentosPorUsuario(@RequestParam("cpfUsuario") String cpfUsuario) {
+    	System.out.println("metodo funcioonando");
+    	return equipamentoService.retornarEquipamentosPorUsuario(cpfUsuario);
     }
     
     // Retorna os equipamentos que podem receber uma O.S
