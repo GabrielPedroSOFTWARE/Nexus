@@ -148,6 +148,7 @@ public class PedidoService {
         }
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracaoHistorico);
         pedidoRepository.save(pedido);
+        notificacaoBackOfficeService.verificarPedidosProximosDoPrazo();
     }
 
     private void validarAlteracaoPrazo(int statusAntigo, int statusNovo,
