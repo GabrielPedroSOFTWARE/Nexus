@@ -498,6 +498,10 @@ public class PedidoService {
             
             Usuario tecnico = (Usuario) usuarioRepository.findByCpf(pedido.getCpfTecnico());
             pedido.setNomeTecnico(tecnico == null ? "Atribuído" : tecnico.getNome());
+            
+            if(atrasada) {
+            	notificacaoBackOfficeService.enviarNotificacaoPedidoAtrasado(pedido, tecnico);
+            }
         }
         return pedidos;
     }
