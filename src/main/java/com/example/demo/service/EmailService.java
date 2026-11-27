@@ -20,7 +20,7 @@ public class EmailService {
         mensagem.setText(
             "Olá! Recebemos um pedido para alterar a sua senha.\n\n" +
             "Só clique no link abaixo se você estiver na tela do sistema"
-            + " aguardando agora (válido por 15 minutos):\n" +
+            + " aguardando agora (válido por 30 minutos):\n" +
             link + "\n\n" +
             "Se não foi você quem pediu, basta ignorar este e-mail."
         );

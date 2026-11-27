@@ -43,6 +43,8 @@ public class EquipamentoService {
 	private PedidoRepository pedidoRepository;
 	@Autowired
 	private HistoricoUsuarioRepository historicoUsuarioRepository;
+	@Autowired
+	private NotificacaoUsuarioService notificacaoUsuarioService;
 
 	
 	// Gera o relatório do pc escaneado
@@ -224,6 +226,10 @@ public class EquipamentoService {
     		+ " desvinculou o ativo PC-" + equipamento.getId() 
     		+ " da conta do usuário: " + usuarioProprietario.getNome() 
     		+ "\nMotivo: " + motivo;
+    		
+    		notificacaoUsuarioService
+    		.enviarNotificacaoUsuario(usuarioProprietario.getCpf(), 99, null,
+    				"O ADM desvinculou o ativo da sua conta");
     	}
     	HistoricoUsuario historico = new HistoricoUsuario();
     	historico.setCpfUsuario(cpfUsuario);

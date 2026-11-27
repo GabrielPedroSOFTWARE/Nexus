@@ -134,7 +134,7 @@ public class PedidoService {
             pedido.setAlertaPrazoEnviado(false);
             pedido.setEstahAtrasada(false);
             detalhesNotificacao = new DescricaoPrazo(
-                    prazoMudou ? "Prazo alterado. Justificativa: " + justificativa
+                    prazoMudou ? "Novo prazo definido. Justificativa: " + justificativa
                             : detalhesNotificacao.descricao(), prazoNovo);
         }
 

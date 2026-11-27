@@ -60,7 +60,7 @@ public class EquipamentoController {
     @DeleteMapping("/user/remover-equipamento/{id}")
     public ResponseEntity<String> removerEquipamento(@PathVariable("id") Long idEquipamento,
     		@AuthenticationPrincipal Usuario usuarioLogado,
-    		@RequestBody String motivo) {
+    		@RequestBody(required = false) String motivo) {
     	try {
     		equipamentoService.removerEquipamento(idEquipamento, usuarioLogado, motivo);
     		return ResponseEntity.ok("Peça deletada");

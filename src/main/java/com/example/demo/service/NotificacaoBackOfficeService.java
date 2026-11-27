@@ -211,4 +211,14 @@ public class NotificacaoBackOfficeService {
 
         notificacaoBackOfficeRepository.saveAll(listaParaSalvar);
     }
+	
+	
+	// Envia a notificação de que uma O.S está atrasada
+	public void enviarNotificacaoPedidoAtrasado(Pedido pedido, Usuario tecnico) {
+		NotificacaoBackOffice aviso = new NotificacaoBackOffice();
+		aviso.setCpfTecnico(tecnico.getCpf());
+		aviso.setIdPedido(pedido.getId());
+		aviso.setMensagem("A " + pedido.getId() + " está atrasada");
+		notificacaoBackOfficeRepository.save(aviso);
+	}
 }
