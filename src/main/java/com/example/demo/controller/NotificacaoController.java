@@ -57,7 +57,7 @@ public class NotificacaoController {
     public ResponseEntity<String> marcarNotificacaoTecnicoComoLida(@PathVariable("id") UUID id,
     		@AuthenticationPrincipal Usuario tecnico) {
     	try {
-    		notificacaoBackOfficeService.marcarNotificacaoTecnicoComoLida(tecnico);
+    		notificacaoBackOfficeService.marcarNotificacaoTecnicoComoLida(tecnico, id);
     		return ResponseEntity.ok("Notificação marcada como lida");
     	} catch (RuntimeException e) {
     		return ResponseEntity.badRequest().body(e.getMessage());

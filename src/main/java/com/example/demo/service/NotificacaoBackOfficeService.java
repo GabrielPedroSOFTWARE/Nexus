@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,9 +32,9 @@ public class NotificacaoBackOfficeService {
 	
 
 	// Marca a notificação do back office como lida
-	public void marcarNotificacaoTecnicoComoLida(Usuario backOffice) {
-		NotificacaoBackOffice notificacao = 
-			notificacaoBackOfficeRepository.findByCpfTecnico(backOffice.getCpf());
+	public void marcarNotificacaoTecnicoComoLida(Usuario backOffice, UUID id) {
+		NotificacaoBackOffice notificacao =  notificacaoBackOfficeRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Notificação não encontrada"));
 
 		if(!notificacao.getCpfTecnico().equals(backOffice.getCpf())) {
 			throw new RuntimeException("Você não tem autorização para marcar essa notificação como lida");
