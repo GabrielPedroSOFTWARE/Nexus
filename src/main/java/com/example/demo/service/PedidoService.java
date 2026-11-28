@@ -230,6 +230,9 @@ public class PedidoService {
         if(pedido.getStatus() < 4 && statusNovo == 5) {
         	throw new RuntimeException("Deixe o ativo \"Pronto para entrega\" antes da etapa \"Concluída\"");
         }
+        if(pedido.getStatus() == 0 && statusNovo == 2) {
+        	throw new RuntimeException("Faça primeiro a observação antes de ir para manutenção");
+        }
     }
 
     

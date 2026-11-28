@@ -229,7 +229,7 @@ public class EquipamentoService {
     		
     		notificacaoUsuarioService
     		.enviarNotificacaoUsuario(usuarioProprietario.getCpf(), 99, null,
-    				"O ADM desvinculou o ativo da sua conta");
+    				"O ADM desvinculou o " + "PC-" + equipamento.getId() + " da sua conta");
     	}
     	HistoricoUsuario historico = new HistoricoUsuario();
     	historico.setCpfUsuario(cpfUsuario);
