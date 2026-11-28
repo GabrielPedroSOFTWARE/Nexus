@@ -115,18 +115,19 @@ public class PedidoService {
         LocalDate prazoNovo = parsePrazo(valores.get("prazo"));
         String justificativaInformada = valores.get("justificativa");
         String justificativa = justificativaInformada == null ? "" : justificativaInformada.trim();
-        if (justificativa.length() > 500) {
+        if (!(pedido.getStatus() < 2 && statusNovo == 2) && justificativa.length() > 500) {
             throw new RuntimeException("A justificativa deve ter no máximo 500 caracteres.");
         }
         validarAlteracaoPrazo(statusAntigo, statusNovo, prazoAnterior,
                 prazoNovo, estavaAtrasada, mudouStatus, justificativa, hoje);
 
         boolean prazoMudou = prazoNovo != null && !Objects.equals(prazoAnterior, prazoNovo);
-
+        String textoPrazo = (pedido.getDataFinalManutencao() == null)?
+        		"Prazo definido." : " Novo prazo definido";
         pedido.setStatus(statusNovo);
         pedido.registrarMovimentacao();
         atualizarDatasDoStatus(pedido, statusNovo);
-
+        justificativa = (justificativa.isBlank())? "" : " Justificativa: " + justificativa;
         DescricaoPrazo detalhesNotificacao = aplicarDetalhesNotificacaoDoStatus(
                 pedido, statusAntigo, statusNovo, valores);
         if (prazoNovo != null) {
@@ -134,7 +135,7 @@ public class PedidoService {
             pedido.setAlertaPrazoEnviado(false);
             pedido.setEstahAtrasada(false);
             detalhesNotificacao = new DescricaoPrazo(
-                    prazoMudou ? "Novo prazo definido. Justificativa: " + justificativa
+                    prazoMudou ? textoPrazo + justificativa
                             : detalhesNotificacao.descricao(), prazoNovo);
         }
 
@@ -144,7 +145,7 @@ public class PedidoService {
         if (prazoMudou) {
             String prazoAnteriorTexto = prazoAnterior == null ? "Não definido" : formatadorDataHora.format(prazoAnterior);
             alteracaoHistorico += " · Prazo: " + prazoAnteriorTexto + " -> " + formatadorDataHora.format(prazoNovo)
-                    + " · Justificativa: " + justificativa;
+                    + " ·" + justificativa;
         }
         historicoPedidoService.registrarAcao(pedido, usuario.getCpf(), alteracaoHistorico);
         pedidoRepository.save(pedido);
@@ -167,7 +168,9 @@ public class PedidoService {
                 throw new RuntimeException("Informe a justificativa para alterar o prazo.");
             }
         }
-        if (prazoNovo != null && !Objects.equals(prazoAnterior, prazoNovo) && justificativa.isBlank()) {
+        boolean temJustificativa = !(statusAntigo < 2 && statusNovo == 2);
+        if (prazoNovo != null && !Objects.equals(prazoAnterior, prazoNovo) 
+        		&& temJustificativa && justificativa.isBlank()) {
             throw new RuntimeException("Informe a justificativa para alterar o prazo.");
         }
     }
