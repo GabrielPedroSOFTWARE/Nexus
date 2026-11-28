@@ -127,7 +127,7 @@ public class PedidoService {
         pedido.setStatus(statusNovo);
         pedido.registrarMovimentacao();
         atualizarDatasDoStatus(pedido, statusNovo);
-        justificativa = (justificativa.isBlank())? "" : " Justificativa: " + justificativa;
+        justificativa = (justificativa.isBlank())? "" : "\nJustificativa: " + justificativa;
         DescricaoPrazo detalhesNotificacao = aplicarDetalhesNotificacaoDoStatus(
                 pedido, statusAntigo, statusNovo, valores);
         if (prazoNovo != null) {
@@ -236,6 +236,12 @@ public class PedidoService {
         if(pedido.getStatus() == 0 && statusNovo == 2) {
         	throw new RuntimeException("Faça primeiro a observação antes de ir para manutenção");
         }
+        if(pedido.getStatus() < 2 && statusNovo == 3) {
+        	throw new RuntimeException("Faça a manutenção antes de aguardar as peças");
+        }
+        if(pedido.getStatus() < 3 && statusNovo == 4 && pedido.getStatus() != 2) {
+        	throw new RuntimeException("Faça a manutenção primeiro");
+        }
     }
 
     
@@ -259,7 +265,6 @@ public class PedidoService {
             descricao = (antigo > novo) ? "O.S voltou para fase de diagnóstico" : "Prazo definido";
             return new DescricaoPrazo(descricao, prazo);
         } else if (novo == 5) {
-            pedido.setObservacoesTecnico(dados.get("observacao"));
             pedido.setDescricao(dados.get("descricao"));
             descricao = dados.get("descricao");
         } else if (antigo > novo) {
@@ -359,9 +364,10 @@ public class PedidoService {
     	pedido.setStatus(0);
     	pedido.setDataFinalManutencao(null);
     	pedido.setAlertaPrazoEnviado(false);
+    	pedido.setObservacoesTecnico("Nenhuma observação registrada até o momento.");
     	pedido.registrarMovimentacao();
     	
-    	String alteracao = "O.S de volta à fila\n"
+    	String alteracao = "O.S de volta à fila. \n"
 				+ "Justificativa: " + justificativaNormalizada;
 		pedidoRepository.save(pedido);
     	
