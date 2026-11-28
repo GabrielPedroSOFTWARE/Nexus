@@ -29,30 +29,49 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
         String token = recuperarToken(request);
-        
-        if (token != null) verificarToken(token);
-        
+
+        if (token != null) {
+            try {
+                boolean tokenValido = verificarToken(token);
+                if (!tokenValido) {
+                    responderNaoAutorizado(response, "Token JWT inválido ou desatualizado.");
+                    return;
+                }
+            } catch (RuntimeException ex) {
+                responderNaoAutorizado(response, "Token JWT inválido ou expirado.");
+                return;
+            }
+        }
+
         filterChain.doFilter(request, response);
+    }
+    
+    
+    private void responderNaoAutorizado(HttpServletResponse response, String mensagem) throws IOException {
+        SecurityContextHolder.clearContext();
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"erro\": \"" + mensagem + "\"}");
     }
 
     // Verifica o token
-    private void verificarToken(String token) {
-    	
+    private boolean verificarToken(String token) {
         String cpf = tokenService.validarToken(token);
-        if (cpf == null) return;
-        
+        if (cpf == null) return false;
+
         Usuario usuario = (Usuario) usuarioRepository.findByCpf(cpf);
-        if (usuario == null) return;
-        
+        if (usuario == null) return false;
+
         Integer versaoNoToken = tokenService.extrairVersaoToken(token);
         if (versaoNoToken == null || !versaoNoToken.equals(usuario.getVersaoToken())) {
             System.out.println("Bloqueado! Token desatualizado para o usuário: " + cpf);
-            return; 
+            return false;
         }
-        
-        var autenticacao = 
-        		new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
+
+        var autenticacao =
+                new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(autenticacao);
+        return true;
     }
 
     // Método auxiliar para tirar a palavra "Bearer " e deixar apenas o código do token
